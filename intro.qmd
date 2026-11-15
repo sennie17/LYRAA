@@ -1,0 +1,290 @@
+---
+title: "Enter Your Main Content"
+author:
+    - name: AXIS 2026
+date: today
+format: html
+---
+
+
+# INTRODUCTION: CUSTOMER CHURN DATASET
+
+**Published**
+
+November 15, 2026
+
+## Apa Itu Dataset?
+
+Dataset merupakan kumpulan data yang disusun secara terstruktur, biasanya dalam bentuk tabel, sehingga dapat digunakan untuk analisis dan pengambilan keputusan.
+
+Sebuah dataset umumnya terdiri dari:
+
+- **Baris (Rows):** Setiap baris merepresentasikan satu observasi atau satu data.
+- **Kolom (Columns):** Setiap kolom merepresentasikan variabel atau atribut dari suatu observasi.
+
+Pada analisis ini, kita akan menggunakan dataset **Customer Churn** yang berisi informasi pelanggan suatu layanan internet.
+
+Dataset ini memiliki 3.000 observasi dan 13 variabel yang menggambarkan karakteristik pelanggan, jenis layanan, biaya berlangganan, hingga status pelanggan yang berhenti berlangganan (churn).
+
+Contoh beberapa data:
+
+| customer_id | region | contract_type | monthly_charges | churn |
+|---|---|---|---:|---:|
+| CUST-00001 | Sulawesi | Bulanan | 373000 | 1 |
+| CUST-00002 | Sumatera | Bulanan | 345000 | 1 |
+| CUST-00003 | Sulawesi | Tahunan | 471000 | 0 |
+| CUST-00004 | Kalimantan | Bulanan | 555000 | 1 |
+| CUST-00005 | Jawa | Bulanan | 340000 | 0 |
+
+*Catatan: Tabel di atas merupakan contoh beberapa observasi dari dataset asli.*
+
+## Mengenal Dataset Customer Churn
+
+Customer Churn merupakan kondisi ketika pelanggan berhenti menggunakan atau berlangganan suatu layanan.
+
+Analisis customer churn penting bagi perusahaan karena dapat membantu memahami karakteristik pelanggan yang berhenti berlangganan serta mengidentifikasi faktor-faktor yang berkaitan dengan keputusan tersebut.
+
+Dataset yang digunakan dalam latihan ini memiliki beberapa kelompok variabel:
+
+| Kelompok | Variabel |
+|---|---|
+| Identitas Pelanggan | customer_id |
+| Informasi Pendaftaran | signup_date, region |
+| Segmentasi | segment |
+| Informasi Kontrak | contract_type |
+| Pembayaran | payment_method |
+| Layanan | internet_service |
+| Aktivitas Berlangganan | tenure_months |
+| Informasi Biaya | monthly_charges, total_charges |
+| Pengalaman Pelanggan | num_complaints, support_calls |
+| Target Analisis | churn |
+
+**Keterangan variabel churn:**
+
+- `0` = Pelanggan tidak berhenti berlangganan.
+- `1` = Pelanggan berhenti berlangganan.
+
+Variabel churn akan menjadi fokus utama dalam analisis karena kita ingin mengetahui pola dan karakteristik pelanggan yang mengalami churn.
+
+## Mengapa Dataset Disimpan di GitHub?
+
+GitHub merupakan platform yang dapat digunakan untuk menyimpan dan mengelola file dalam sebuah repository.
+
+Dataset Customer Churn pada latihan ini disimpan dalam repository GitHub sehingga dapat diakses secara langsung melalui internet.
+
+Alur pengambilan dataset:
+
+**GitHub Repository → File CSV → Raw URL → RStudio → Dataset**
+
+Keuntungan menggunakan dataset dari GitHub:
+
+1. Tidak perlu mengunduh dataset secara manual.
+2. Dataset dapat diakses melalui URL.
+3. Memudahkan proses reproduksi analisis.
+4. Dataset dapat digunakan pada komputer yang berbeda selama memiliki akses internet dan URL masih tersedia.
+
+## URL Halaman GitHub vs URL Raw
+
+Salah satu hal penting ketika membaca dataset dari GitHub adalah memahami perbedaan antara URL halaman GitHub dan URL Raw.
+
+### URL Halaman GitHub
+
+URL halaman GitHub digunakan untuk melihat file melalui browser.
+
+Contoh:
+
+`https://github.com/Muhammadrizkybagas/bookdown-template/blob/main/data/customer_churn.csv`
+
+URL tersebut menampilkan halaman website GitHub, bukan isi file CSV secara langsung.
+
+Karena itu, URL halaman biasa tidak digunakan secara langsung untuk membaca dataset menggunakan `read.csv()`.
+
+### URL Raw GitHub
+
+URL Raw GitHub digunakan untuk mengakses isi file secara langsung tanpa tampilan halaman GitHub.
+
+URL yang digunakan dalam latihan ini:
+
+`https://raw.githubusercontent.com/Muhammadrizkybagas/bookdown-template/refs/heads/main/data/customer_churn.csv`
+
+URL tersebut berisi data mentah dalam format CSV yang dapat dibaca oleh R.
+
+**Tips:**
+
+Cara mudah mengenali URL Raw adalah dengan memperhatikan alamatnya:
+
+- `github.com` = URL halaman GitHub.
+- `raw.githubusercontent.com` = URL data mentah (Raw).
+
+## Membaca Dataset dari GitHub
+
+Setelah memperoleh URL Raw, langkah selanjutnya adalah membaca dataset menggunakan R.
+
+Untuk membaca file CSV, kita dapat menggunakan fungsi `read.csv()`.
+
+Masukkan kode berikut ke dalam code chunk R pada file Quarto (`.qmd`).
+
+```{r}
+# URL dataset Customer Churn
+url_customer <-
+  "https://raw.githubusercontent.com/Muhammadrizkybagas/bookdown-template/refs/heads/main/data/customer_churn.csv"
+
+# Membaca dataset
+customer_churn <- read.csv(
+  url_customer,
+  stringsAsFactors = FALSE
+)
+```
+
+**Penjelasan kode:**
+
+- `url_customer`: Variabel yang digunakan untuk menyimpan alamat Raw URL dataset.
+- `read.csv()`: Fungsi untuk membaca file CSV, baik dari penyimpanan lokal maupun URL.
+- `stringsAsFactors = FALSE`: Memastikan kolom teks dibaca sebagai karakter, bukan langsung diubah menjadi factor.
+- `customer_churn`: Variabel yang digunakan untuk menyimpan dataset dalam bentuk data frame.
+
+## Memeriksa Dataset
+
+Setelah dataset berhasil dibaca, kita perlu melakukan pemeriksaan awal untuk memahami isi dan struktur data.
+
+### Menampilkan Enam Baris Pertama
+
+```{r}
+head(customer_churn)
+```
+
+Fungsi `head()` digunakan untuk menampilkan enam baris pertama dari dataset.
+
+### Menghitung Jumlah Baris
+
+```{r}
+nrow(customer_churn)
+```
+
+Hasil:
+
+```text
+[1] 3000
+```
+
+Artinya, dataset memiliki 3.000 observasi atau baris data.
+
+### Menghitung Jumlah Kolom
+
+```{r}
+ncol(customer_churn)
+```
+
+Hasil:
+
+```text
+[1] 13
+```
+
+Artinya, terdapat 13 variabel dalam dataset.
+
+### Melihat Nama Kolom
+
+```{r}
+names(customer_churn)
+```
+
+Hasil:
+
+```text
+[1] "customer_id"
+[2] "signup_date"
+[3] "region"
+[4] "segment"
+[5] "contract_type"
+[6] "payment_method"
+[7] "internet_service"
+[8] "tenure_months"
+[9] "monthly_charges"
+[10] "total_charges"
+[11] "num_complaints"
+[12] "support_calls"
+[13] "churn"
+```
+
+### Melihat Struktur Dataset
+
+```{r}
+str(customer_churn)
+```
+
+Fungsi `str()` digunakan untuk melihat struktur dataset, termasuk nama variabel, tipe data, dan beberapa contoh nilainya.
+
+### Melihat Ringkasan Statistik
+
+```{r}
+summary(customer_churn)
+```
+
+Fungsi `summary()` digunakan untuk memperoleh ringkasan statistik dari setiap variabel.
+
+Untuk variabel numerik, hasilnya dapat mencakup nilai minimum, kuartil, median, mean, dan maksimum.
+
+## Menampilkan Dataset Secara Interaktif
+
+Selain menggunakan `head()`, kita juga dapat menampilkan seluruh dataset dalam bentuk tabel interaktif menggunakan package `DT`.
+
+Package DT menyediakan fungsi `datatable()` yang memungkinkan pengguna mencari, mengurutkan, dan memfilter data secara langsung.
+
+Jika package DT belum terpasang, jalankan satu kali di Console:
+
+```r
+install.packages("DT")
+```
+
+Kemudian panggil library:
+
+```{r}
+library(DT)
+```
+
+Setelah itu, tampilkan dataset:
+
+```{r}
+datatable(
+  customer_churn,
+  filter = "top",
+  rownames = FALSE,
+  options = list(
+    pageLength = 10,
+    scrollX = TRUE
+  )
+)
+```
+
+Hasilnya berupa tabel interaktif yang memiliki beberapa fitur:
+
+- **Search:** Mencari data berdasarkan kata kunci.
+- **Filter:** Menyaring data berdasarkan kolom tertentu.
+- **Sorting:** Mengurutkan data berdasarkan nilai kolom.
+- **Pagination:** Berpindah halaman untuk melihat data lainnya.
+- **ScrollX:** Menggeser tabel secara horizontal apabila kolom terlalu banyak.
+
+## Kesalahan yang Sering Terjadi
+
+| Masalah | Kemungkinan Penyebab |
+|---|---|
+| Error saat `read.csv()` | Menggunakan URL halaman GitHub, bukan URL Raw. |
+| Dataset tidak ditemukan | URL salah atau file sudah dipindahkan. |
+| Error saat memanggil `datatable()` | Package DT belum terpasang atau belum dipanggil menggunakan `library(DT)`. |
+| Data tidak tampil dengan benar | Format file atau proses pembacaan data tidak sesuai. |
+| Tidak dapat mengakses URL | Koneksi internet bermasalah atau repository tidak dapat diakses. |
+
+## Ringkasan
+
+Berdasarkan materi ini, beberapa hal yang perlu dipahami adalah:
+
+1. Dataset merupakan kumpulan data yang terdiri dari baris dan kolom.
+2. Dataset Customer Churn berisi 3.000 observasi dan 13 variabel.
+3. Dataset disimpan dalam repository GitHub agar dapat diakses secara langsung melalui internet.
+4. Gunakan URL Raw GitHub untuk membaca dataset menggunakan R.
+5. Fungsi `read.csv()` digunakan untuk membaca file CSV.
+6. Gunakan `head()`, `nrow()`, `ncol()`, `names()`, `str()`, dan `summary()` untuk memahami struktur dataset.
+7. Gunakan `datatable()` dari package DT untuk menampilkan data secara interaktif.
+
+Setelah memahami struktur dan karakteristik dataset, tahap berikutnya adalah melakukan **Data Cleaning dan Exploratory Data Analysis (EDA)** untuk menemukan pola, hubungan antarvariabel, serta faktor-faktor yang berkaitan dengan customer churn.

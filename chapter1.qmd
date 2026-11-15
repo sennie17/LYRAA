@@ -1,0 +1,1274 @@
+---
+title: "Exploratory Data Analysis - Customer Churn"
+subtitle: "Analisis Karakteristik dan Perilaku Pelanggan"
+author: "Jesen"
+date: today
+format:
+  html:
+    toc: true
+    toc-depth: 3
+    number-sections: true
+    theme: cosmo
+    code-fold: true
+    code-summary: "Tampilkan / Sembunyikan Kode"
+    embed-resources: true
+---
+
+# Data Preparation
+
+## Import Library dan Dataset
+
+Pada tahap awal, dilakukan import library yang dibutuhkan untuk proses pengolahan data dan visualisasi. Dataset customer churn diperoleh dari repositori GitHub.
+
+```{r}
+#| message: false
+#| warning: false
+
+library(dplyr)
+library(ggplot2)
+library(tidyr)
+library(scales)
+```
+
+```{r}
+# Import data dari GitHub
+customer_churn <- read.csv(
+  "https://raw.githubusercontent.com/Muhammadrizkybagas/bookdown-template/refs/heads/main/data/customer_churn.csv"
+)
+
+# Melihat data
+head(customer_churn)
+```
+
+## Data Cleaning
+
+Proses cleaning dilakukan untuk memastikan data memiliki format yang sesuai sebelum dianalisis.
+
+```{r}
+customer_churn <- customer_churn %>%
+  mutate(
+    across(where(is.character), trimws),
+    signup_date = as.Date(signup_date),
+    region = as.factor(region),
+    segment = as.factor(segment),
+    contract_type = as.factor(contract_type),
+    payment_method = as.factor(payment_method),
+    internet_service = as.factor(internet_service),
+    churn = factor(churn, levels = c(0, 1),
+                   labels = c("Tidak Churn", "Churn"))
+  ) %>%
+  distinct(customer_id, .keep_all = TRUE)
+```
+
+## Pemeriksaan Data
+
+```{r}
+# Struktur data
+str(customer_churn)
+
+# Dimensi data
+dim(customer_churn)
+
+# Missing value setiap kolom
+colSums(is.na(customer_churn))
+
+# Total missing value
+sum(is.na(customer_churn))
+
+# Duplikasi ID pelanggan
+sum(duplicated(customer_churn$customer_id))
+
+# Statistik deskriptif
+summary(customer_churn)
+```
+
+## Persiapan Variabel Analisis
+
+Membuat variabel numerik churn untuk kebutuhan perhitungan tingkat churn dan korelasi.
+
+```{r}
+customer_churn <- customer_churn %>%
+  mutate(
+    churn_num = as.integer(churn == "Churn")
+  )
+```
+
+# Overview Dataset
+
+Bagian ini memberikan gambaran umum mengenai karakteristik dataset dan kondisi pelanggan.
+
+## Informasi Dataset
+
+```{r}
+cat("Jumlah Pelanggan:", nrow(customer_churn), "\n")
+cat("Jumlah Variabel:", ncol(customer_churn), "\n")
+cat("Tanggal Pendaftaran Terawal:", min(customer_churn$signup_date), "\n")
+cat("Tanggal Pendaftaran Terakhir:", max(customer_churn$signup_date), "\n")
+cat("Total Missing Value:", sum(is.na(customer_churn)), "\n")
+```
+
+## Key Performance Indicators (KPI)
+
+```{r}
+total_customer <- nrow(customer_churn)
+
+total_churn <- sum(customer_churn$churn == "Churn")
+
+total_stay <- sum(customer_churn$churn == "Tidak Churn")
+
+churn_rate <- total_churn / total_customer
+
+stay_rate <- total_stay / total_customer
+
+kpi <- data.frame(
+  Metric = c(
+    "Total Customer",
+    "Customer Churn",
+    "Customer Retained",
+    "Churn Rate",
+    "Retention Rate"
+  ),
+  Value = c(
+    total_customer,
+    total_churn,
+    total_stay,
+    percent(churn_rate),
+    percent(stay_rate)
+  )
+)
+
+knitr::kable(kpi, caption = "Customer Overview")
+```
+
+## Distribusi Status Pelanggan
+
+Visualisasi ini digunakan untuk mengetahui perbandingan pelanggan yang masih berlangganan dan pelanggan yang berhenti berlangganan.
+
+```{r}
+ggplot(customer_churn, aes(x = churn, fill = churn)) +
+  geom_bar(width = 0.65) +
+  geom_text(
+    stat = "count",
+    aes(label = after_stat(count)),
+    vjust = -0.5,
+    size = 4
+  ) +
+  scale_fill_manual(
+    values = c("Tidak Churn" = "#2E86AB",
+               "Churn" = "#E76F51")
+  ) +
+  labs(
+    title = "Distribusi Status Pelanggan",
+    subtitle = "Perbandingan pelanggan churn dan tidak churn",
+    x = "Status Pelanggan",
+    y = "Jumlah Pelanggan"
+  ) +
+  theme_minimal() +
+  theme(legend.position = "none")
+```
+
+## Proporsi Status Pelanggan
+
+```{r}
+churn_distribution <- customer_churn %>%
+  count(churn) %>%
+  mutate(
+    percentage = n / sum(n),
+    label = paste0(
+      churn, "\n",
+      percent(percentage, accuracy = 0.1)
+    )
+  )
+
+ggplot(churn_distribution,
+       aes(x = "", y = percentage, fill = churn)) +
+  geom_col(width = 1, color = "white") +
+  coord_polar(theta = "y") +
+  geom_text(
+    aes(label = label),
+    position = position_stack(vjust = 0.5),
+    color = "white",
+    size = 4
+  ) +
+  scale_fill_manual(
+    values = c("Tidak Churn" = "#2E86AB",
+               "Churn" = "#E76F51")
+  ) +
+  labs(
+    title = "Proporsi Pelanggan Churn",
+    fill = "Status"
+  ) +
+  theme_void()
+```
+
+# Customer Demographics and Segmentation
+
+Bagian ini menganalisis karakteristik pelanggan berdasarkan wilayah dan jenis segmen pelanggan.
+
+## Distribusi Pelanggan Berdasarkan Wilayah
+
+```{r}
+ggplot(customer_churn, aes(x = region, fill = region)) +
+  geom_bar() +
+  geom_text(
+    stat = "count",
+    aes(label = after_stat(count)),
+    vjust = -0.4,
+    size = 3.5
+  ) +
+  labs(
+    title = "Distribusi Pelanggan Berdasarkan Wilayah",
+    x = "Wilayah",
+    y = "Jumlah Pelanggan"
+  ) +
+  theme_minimal() +
+  theme(
+    legend.position = "none",
+    axis.text.x = element_text(angle = 30, hjust = 1)
+  )
+```
+
+## Distribusi Pelanggan Berdasarkan Segmen
+
+```{r}
+ggplot(customer_churn, aes(x = segment, fill = segment)) +
+  geom_bar() +
+  geom_text(
+    stat = "count",
+    aes(label = after_stat(count)),
+    vjust = -0.5
+  ) +
+  labs(
+    title = "Distribusi Pelanggan Berdasarkan Segmen",
+    x = "Segmen Pelanggan",
+    y = "Jumlah Pelanggan"
+  ) +
+  theme_minimal() +
+  theme(legend.position = "none")
+```
+
+## Perbandingan Churn Berdasarkan Wilayah
+
+```{r}
+ggplot(customer_churn, aes(x = region, fill = churn)) +
+  geom_bar(position = "dodge") +
+  labs(
+    title = "Jumlah Churn Berdasarkan Wilayah",
+    x = "Wilayah",
+    y = "Jumlah Pelanggan",
+    fill = "Status Churn"
+  ) +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 30, hjust = 1))
+```
+
+## Tingkat Churn Berdasarkan Wilayah
+
+Jumlah churn saja belum cukup untuk membandingkan wilayah karena setiap wilayah memiliki jumlah pelanggan yang berbeda. Oleh karena itu, digunakan churn rate.
+
+```{r}
+region_churn <- customer_churn %>%
+  group_by(region) %>%
+  summarise(
+    total_customer = n(),
+    total_churn = sum(churn == "Churn"),
+    churn_rate = total_churn / total_customer,
+    .groups = "drop"
+  )
+
+ggplot(region_churn,
+       aes(x = reorder(region, churn_rate),
+           y = churn_rate,
+           fill = churn_rate)) +
+  geom_col(width = 0.7) +
+  geom_text(
+    aes(label = percent(churn_rate, accuracy = 0.1)),
+    hjust = -0.2
+  ) +
+  coord_flip() +
+  scale_y_continuous(labels = percent) +
+  labs(
+    title = "Churn Rate Berdasarkan Wilayah",
+    x = "Wilayah",
+    y = "Churn Rate"
+  ) +
+  theme_minimal() +
+  theme(legend.position = "none")
+```
+
+## Tingkat Churn Berdasarkan Segmen
+
+```{r}
+segment_churn <- customer_churn %>%
+  group_by(segment) %>%
+  summarise(
+    total_customer = n(),
+    total_churn = sum(churn == "Churn"),
+    churn_rate = total_churn / total_customer,
+    .groups = "drop"
+  )
+
+ggplot(segment_churn,
+       aes(x = reorder(segment, churn_rate),
+           y = churn_rate,
+           fill = segment)) +
+  geom_col(width = 0.7) +
+  geom_text(
+    aes(label = percent(churn_rate, accuracy = 0.1)),
+    vjust = -0.5
+  ) +
+  scale_y_continuous(
+    labels = percent,
+    limits = c(0, 0.55)
+  ) +
+  labs(
+    title = "Churn Rate Berdasarkan Segmen Pelanggan",
+    x = "Segmen",
+    y = "Churn Rate"
+  ) +
+  theme_minimal() +
+  theme(legend.position = "none")
+```
+
+# Contract and Payment Analysis
+
+Bagian ini bertujuan mengetahui hubungan antara jenis kontrak dan metode pembayaran dengan perilaku pelanggan.
+
+## Distribusi Jenis Kontrak
+
+```{r}
+ggplot(customer_churn,
+       aes(x = contract_type, fill = contract_type)) +
+  geom_bar() +
+  geom_text(
+    stat = "count",
+    aes(label = after_stat(count)),
+    vjust = -0.5
+  ) +
+  labs(
+    title = "Distribusi Jenis Kontrak Pelanggan",
+    x = "Jenis Kontrak",
+    y = "Jumlah Pelanggan"
+  ) +
+  theme_minimal() +
+  theme(legend.position = "none")
+```
+
+## Churn Berdasarkan Jenis Kontrak
+
+```{r}
+ggplot(customer_churn,
+       aes(x = contract_type, fill = churn)) +
+  geom_bar(position = "dodge") +
+  labs(
+    title = "Jumlah Churn Berdasarkan Jenis Kontrak",
+    x = "Jenis Kontrak",
+    y = "Jumlah Pelanggan",
+    fill = "Status Churn"
+  ) +
+  theme_minimal()
+```
+
+## Churn Rate Berdasarkan Jenis Kontrak
+
+```{r}
+contract_churn <- customer_churn %>%
+  group_by(contract_type) %>%
+  summarise(
+    total_customer = n(),
+    total_churn = sum(churn == "Churn"),
+    churn_rate = total_churn / total_customer,
+    .groups = "drop"
+  )
+
+ggplot(contract_churn,
+       aes(x = reorder(contract_type, churn_rate),
+           y = churn_rate,
+           fill = contract_type)) +
+  geom_col(width = 0.7) +
+  geom_text(
+    aes(label = percent(churn_rate, accuracy = 0.1)),
+    vjust = -0.5
+  ) +
+  scale_y_continuous(
+    labels = percent,
+    limits = c(0, 0.65)
+  ) +
+  labs(
+    title = "Churn Rate Berdasarkan Jenis Kontrak",
+    x = "Jenis Kontrak",
+    y = "Churn Rate"
+  ) +
+  theme_minimal() +
+  theme(legend.position = "none")
+```
+
+## Distribusi Metode Pembayaran
+
+```{r}
+ggplot(customer_churn,
+       aes(x = payment_method, fill = payment_method)) +
+  geom_bar() +
+  geom_text(
+    stat = "count",
+    aes(label = after_stat(count)),
+    vjust = -0.5,
+    size = 3.5
+  ) +
+  labs(
+    title = "Distribusi Metode Pembayaran",
+    x = "Metode Pembayaran",
+    y = "Jumlah Pelanggan"
+  ) +
+  theme_minimal() +
+  theme(
+    legend.position = "none",
+    axis.text.x = element_text(angle = 25, hjust = 1)
+  )
+```
+
+## Churn Rate Berdasarkan Metode Pembayaran
+
+```{r}
+payment_churn <- customer_churn %>%
+  group_by(payment_method) %>%
+  summarise(
+    total_customer = n(),
+    total_churn = sum(churn == "Churn"),
+    churn_rate = total_churn / total_customer,
+    .groups = "drop"
+  )
+
+ggplot(payment_churn,
+       aes(x = reorder(payment_method, churn_rate),
+           y = churn_rate,
+           fill = payment_method)) +
+  geom_col() +
+  geom_text(
+    aes(label = percent(churn_rate, accuracy = 0.1)),
+    vjust = -0.5
+  ) +
+  scale_y_continuous(
+    labels = percent,
+    limits = c(0, 0.5)
+  ) +
+  labs(
+    title = "Churn Rate Berdasarkan Metode Pembayaran",
+    x = "Metode Pembayaran",
+    y = "Churn Rate"
+  ) +
+  theme_minimal() +
+  theme(
+    legend.position = "none",
+    axis.text.x = element_text(angle = 20, hjust = 1)
+  )
+```
+
+# Internet Service Analysis
+
+Bagian ini membandingkan perilaku pelanggan berdasarkan jenis layanan internet yang digunakan.
+
+## Distribusi Layanan Internet
+
+```{r}
+ggplot(customer_churn,
+       aes(x = internet_service, fill = internet_service)) +
+  geom_bar() +
+  geom_text(
+    stat = "count",
+    aes(label = after_stat(count)),
+    vjust = -0.5
+  ) +
+  labs(
+    title = "Distribusi Jenis Layanan Internet",
+    x = "Jenis Layanan",
+    y = "Jumlah Pelanggan"
+  ) +
+  theme_minimal() +
+  theme(legend.position = "none")
+```
+
+## Churn Berdasarkan Layanan Internet
+
+```{r}
+ggplot(customer_churn,
+       aes(x = internet_service, fill = churn)) +
+  geom_bar(position = "dodge") +
+  labs(
+    title = "Jumlah Churn Berdasarkan Layanan Internet",
+    x = "Jenis Layanan",
+    y = "Jumlah Pelanggan",
+    fill = "Status Churn"
+  ) +
+  theme_minimal()
+```
+
+## Churn Rate Berdasarkan Layanan Internet
+
+```{r}
+service_churn <- customer_churn %>%
+  group_by(internet_service) %>%
+  summarise(
+    total_customer = n(),
+    total_churn = sum(churn == "Churn"),
+    churn_rate = total_churn / total_customer,
+    .groups = "drop"
+  )
+
+ggplot(service_churn,
+       aes(x = reorder(internet_service, churn_rate),
+           y = churn_rate,
+           fill = internet_service)) +
+  geom_col(width = 0.7) +
+  geom_text(
+    aes(label = percent(churn_rate, accuracy = 0.1)),
+    vjust = -0.5
+  ) +
+  scale_y_continuous(
+    labels = percent,
+    limits = c(0, 0.5)
+  ) +
+  labs(
+    title = "Churn Rate Berdasarkan Layanan Internet",
+    x = "Jenis Layanan",
+    y = "Churn Rate"
+  ) +
+  theme_minimal() +
+  theme(legend.position = "none")
+```
+
+# Customer Registration Trend
+
+Bagian ini menganalisis perkembangan jumlah pelanggan berdasarkan tanggal pendaftaran.
+
+## Tren Pendaftaran Pelanggan
+
+```{r}
+monthly_signup <- customer_churn %>%
+  mutate(
+    month = as.Date(format(signup_date, "%Y-%m-01"))
+  ) %>%
+  group_by(month) %>%
+  summarise(
+    total_customer = n(),
+    .groups = "drop"
+  )
+
+ggplot(monthly_signup,
+       aes(x = month, y = total_customer)) +
+  geom_line(color = "#2E86AB", linewidth = 1) +
+  geom_point(color = "#E76F51", size = 2) +
+  labs(
+    title = "Tren Pendaftaran Pelanggan per Bulan",
+    x = "Bulan",
+    y = "Jumlah Pelanggan"
+  ) +
+  theme_minimal()
+```
+
+## Tren Churn Berdasarkan Bulan Pendaftaran
+
+Visualisasi ini melihat persentase pelanggan yang mengalami churn berdasarkan bulan ketika mereka mendaftar.
+
+```{r}
+monthly_churn <- customer_churn %>%
+  mutate(
+    month = as.Date(format(signup_date, "%Y-%m-01"))
+  ) %>%
+  group_by(month) %>%
+  summarise(
+    total_customer = n(),
+    total_churn = sum(churn == "Churn"),
+    churn_rate = total_churn / total_customer,
+    .groups = "drop"
+  )
+
+ggplot(monthly_churn,
+       aes(x = month, y = churn_rate)) +
+  geom_line(color = "#E76F51", linewidth = 1) +
+  geom_point(color = "#2E86AB", size = 2) +
+  scale_y_continuous(labels = percent) +
+  labs(
+    title = "Churn Rate Berdasarkan Bulan Pendaftaran",
+    x = "Bulan Pendaftaran",
+    y = "Churn Rate"
+  ) +
+  theme_minimal()
+```
+
+# Customer Tenure Analysis
+
+Tenure merupakan lama waktu pelanggan telah berlangganan dalam satuan bulan.
+
+## Distribusi Tenure Pelanggan
+
+```{r}
+ggplot(customer_churn,
+       aes(x = tenure_months)) +
+  geom_histogram(
+    bins = 30,
+    fill = "#2E86AB",
+    color = "white"
+  ) +
+  labs(
+    title = "Distribusi Lama Berlangganan Pelanggan",
+    x = "Tenure (Bulan)",
+    y = "Frekuensi"
+  ) +
+  theme_minimal()
+```
+
+## Distribusi Tenure Berdasarkan Status Churn
+
+```{r}
+ggplot(customer_churn,
+       aes(x = tenure_months, fill = churn)) +
+  geom_density(alpha = 0.4) +
+  labs(
+    title = "Distribusi Tenure Berdasarkan Status Churn",
+    x = "Tenure (Bulan)",
+    y = "Density",
+    fill = "Status"
+  ) +
+  theme_minimal()
+```
+
+## Perbandingan Tenure dengan Boxplot
+
+```{r}
+ggplot(customer_churn,
+       aes(x = churn, y = tenure_months, fill = churn)) +
+  geom_boxplot(alpha = 0.7) +
+  labs(
+    title = "Perbandingan Tenure Berdasarkan Status Churn",
+    x = "Status Pelanggan",
+    y = "Tenure (Bulan)"
+  ) +
+  theme_minimal() +
+  theme(legend.position = "none")
+```
+
+## Churn Rate Berdasarkan Kelompok Tenure
+
+```{r}
+tenure_churn <- customer_churn %>%
+  mutate(
+    tenure_group = cut(
+      tenure_months,
+      breaks = c(0, 12, 24, 36, 48, 60, Inf),
+      labels = c(
+        "0-12 Bulan",
+        "13-24 Bulan",
+        "25-36 Bulan",
+        "37-48 Bulan",
+        "49-60 Bulan",
+        ">60 Bulan"
+      )
+    )
+  ) %>%
+  group_by(tenure_group) %>%
+  summarise(
+    total_customer = n(),
+    total_churn = sum(churn == "Churn"),
+    churn_rate = total_churn / total_customer,
+    .groups = "drop"
+  )
+
+ggplot(tenure_churn,
+       aes(x = tenure_group, y = churn_rate, fill = tenure_group)) +
+  geom_col() +
+  geom_text(
+    aes(label = percent(churn_rate, accuracy = 0.1)),
+    vjust = -0.5
+  ) +
+  scale_y_continuous(labels = percent) +
+  labs(
+    title = "Churn Rate Berdasarkan Kelompok Tenure",
+    x = "Kelompok Tenure",
+    y = "Churn Rate"
+  ) +
+  theme_minimal() +
+  theme(
+    legend.position = "none",
+    axis.text.x = element_text(angle = 25, hjust = 1)
+  )
+```
+
+# Financial Analysis
+
+Bagian ini menganalisis biaya yang dikeluarkan pelanggan selama berlangganan.
+
+## Distribusi Biaya Bulanan
+
+```{r}
+ggplot(customer_churn,
+       aes(x = monthly_charges)) +
+  geom_histogram(
+    bins = 30,
+    fill = "#2E86AB",
+    color = "white"
+  ) +
+  scale_x_continuous(labels = label_number(big.mark = ".")) +
+  labs(
+    title = "Distribusi Biaya Bulanan Pelanggan",
+    x = "Monthly Charges (Rp)",
+    y = "Frekuensi"
+  ) +
+  theme_minimal()
+```
+
+## Distribusi Total Biaya
+
+```{r}
+ggplot(customer_churn,
+       aes(x = total_charges)) +
+  geom_histogram(
+    bins = 30,
+    fill = "#E76F51",
+    color = "white",
+    na.rm = TRUE
+  ) +
+  scale_x_continuous(labels = label_number(big.mark = ".")) +
+  labs(
+    title = "Distribusi Total Biaya Pelanggan",
+    x = "Total Charges (Rp)",
+    y = "Frekuensi"
+  ) +
+  theme_minimal()
+```
+
+## Perbandingan Monthly Charges Berdasarkan Churn
+
+```{r}
+ggplot(customer_churn,
+       aes(x = churn, y = monthly_charges, fill = churn)) +
+  geom_boxplot() +
+  scale_y_continuous(labels = label_number(big.mark = ".")) +
+  labs(
+    title = "Monthly Charges Berdasarkan Status Churn",
+    x = "Status Pelanggan",
+    y = "Monthly Charges (Rp)"
+  ) +
+  theme_minimal() +
+  theme(legend.position = "none")
+```
+
+## Perbandingan Total Charges Berdasarkan Churn
+
+```{r}
+ggplot(customer_churn,
+       aes(x = churn, y = total_charges, fill = churn)) +
+  geom_boxplot(na.rm = TRUE) +
+  scale_y_continuous(labels = label_number(big.mark = ".")) +
+  labs(
+    title = "Total Charges Berdasarkan Status Churn",
+    x = "Status Pelanggan",
+    y = "Total Charges (Rp)"
+  ) +
+  theme_minimal() +
+  theme(legend.position = "none")
+```
+
+## Hubungan Monthly Charges dan Total Charges
+
+```{r}
+ggplot(customer_churn,
+       aes(x = monthly_charges,
+           y = total_charges,
+           color = churn)) +
+  geom_point(alpha = 0.5, na.rm = TRUE) +
+  geom_smooth(
+    method = "lm",
+    se = FALSE,
+    na.rm = TRUE
+  ) +
+  scale_x_continuous(labels = label_number(big.mark = ".")) +
+  scale_y_continuous(labels = label_number(big.mark = ".")) +
+  labs(
+    title = "Hubungan Biaya Bulanan dan Total Biaya",
+    x = "Monthly Charges (Rp)",
+    y = "Total Charges (Rp)",
+    color = "Status Churn"
+  ) +
+  theme_minimal()
+```
+
+# Customer Complaints and Support Analysis
+
+Bagian ini menganalisis jumlah keluhan dan panggilan pelanggan kepada layanan customer support.
+
+## Distribusi Jumlah Keluhan
+
+```{r}
+ggplot(customer_churn,
+       aes(x = factor(num_complaints))) +
+  geom_bar(fill = "#2E86AB") +
+  labs(
+    title = "Distribusi Jumlah Keluhan Pelanggan",
+    x = "Jumlah Keluhan",
+    y = "Jumlah Pelanggan"
+  ) +
+  theme_minimal()
+```
+
+## Jumlah Keluhan Berdasarkan Status Churn
+
+```{r}
+ggplot(customer_churn,
+       aes(x = churn, y = num_complaints, fill = churn)) +
+  geom_boxplot() +
+  labs(
+    title = "Jumlah Keluhan Berdasarkan Status Churn",
+    x = "Status Pelanggan",
+    y = "Jumlah Keluhan"
+  ) +
+  theme_minimal() +
+  theme(legend.position = "none")
+```
+
+## Churn Rate Berdasarkan Jumlah Keluhan
+
+```{r}
+complaint_churn <- customer_churn %>%
+  group_by(num_complaints) %>%
+  summarise(
+    total_customer = n(),
+    total_churn = sum(churn == "Churn"),
+    churn_rate = total_churn / total_customer,
+    .groups = "drop"
+  )
+
+ggplot(complaint_churn,
+       aes(x = num_complaints, y = churn_rate)) +
+  geom_col(fill = "#E76F51") +
+  geom_text(
+    aes(label = percent(churn_rate, accuracy = 0.1)),
+    vjust = -0.5
+  ) +
+  scale_y_continuous(labels = percent) +
+  labs(
+    title = "Churn Rate Berdasarkan Jumlah Keluhan",
+    x = "Jumlah Keluhan",
+    y = "Churn Rate"
+  ) +
+  theme_minimal()
+```
+
+## Distribusi Support Calls
+
+```{r}
+ggplot(customer_churn,
+       aes(x = factor(support_calls))) +
+  geom_bar(fill = "#2E86AB") +
+  labs(
+    title = "Distribusi Jumlah Panggilan Customer Support",
+    x = "Jumlah Support Calls",
+    y = "Jumlah Pelanggan"
+  ) +
+  theme_minimal()
+```
+
+## Support Calls Berdasarkan Status Churn
+
+```{r}
+ggplot(customer_churn,
+       aes(x = churn, y = support_calls, fill = churn)) +
+  geom_boxplot() +
+  labs(
+    title = "Support Calls Berdasarkan Status Churn",
+    x = "Status Pelanggan",
+    y = "Jumlah Support Calls"
+  ) +
+  theme_minimal() +
+  theme(legend.position = "none")
+```
+
+## Churn Rate Berdasarkan Support Calls
+
+```{r}
+support_churn <- customer_churn %>%
+  group_by(support_calls) %>%
+  summarise(
+    total_customer = n(),
+    total_churn = sum(churn == "Churn"),
+    churn_rate = total_churn / total_customer,
+    .groups = "drop"
+  )
+
+ggplot(support_churn,
+       aes(x = support_calls, y = churn_rate)) +
+  geom_col(fill = "#E76F51") +
+  geom_text(
+    aes(label = percent(churn_rate, accuracy = 0.1)),
+    vjust = -0.5,
+    size = 3
+  ) +
+  scale_y_continuous(labels = percent) +
+  labs(
+    title = "Churn Rate Berdasarkan Jumlah Support Calls",
+    x = "Jumlah Support Calls",
+    y = "Churn Rate"
+  ) +
+  theme_minimal()
+```
+
+## Hubungan Keluhan dan Support Calls
+
+```{r}
+ggplot(customer_churn,
+       aes(x = num_complaints,
+           y = support_calls,
+           color = churn)) +
+  geom_jitter(
+    alpha = 0.4,
+    width = 0.15,
+    height = 0.15
+  ) +
+  labs(
+    title = "Hubungan Jumlah Keluhan dan Support Calls",
+    x = "Jumlah Keluhan",
+    y = "Jumlah Support Calls",
+    color = "Status Churn"
+  ) +
+  theme_minimal()
+```
+
+# Relationship Between Variables
+
+Bagian ini digunakan untuk melihat hubungan antara beberapa variabel numerik.
+
+## Hubungan Tenure dan Total Charges
+
+```{r}
+ggplot(customer_churn,
+       aes(x = tenure_months,
+           y = total_charges,
+           color = churn)) +
+  geom_point(alpha = 0.5, na.rm = TRUE) +
+  geom_smooth(
+    method = "lm",
+    se = FALSE,
+    na.rm = TRUE
+  ) +
+  scale_y_continuous(labels = label_number(big.mark = ".")) +
+  labs(
+    title = "Hubungan Tenure dan Total Charges",
+    x = "Tenure (Bulan)",
+    y = "Total Charges (Rp)",
+    color = "Status Churn"
+  ) +
+  theme_minimal()
+```
+
+## Hubungan Tenure dan Monthly Charges
+
+```{r}
+ggplot(customer_churn,
+       aes(x = tenure_months,
+           y = monthly_charges,
+           color = churn)) +
+  geom_point(alpha = 0.5) +
+  geom_smooth(
+    method = "lm",
+    se = FALSE
+  ) +
+  labs(
+    title = "Hubungan Tenure dan Monthly Charges",
+    x = "Tenure (Bulan)",
+    y = "Monthly Charges (Rp)",
+    color = "Status Churn"
+  ) +
+  theme_minimal()
+```
+
+## Korelasi Antarvariabel Numerik
+
+```{r}
+numeric_data <- customer_churn %>%
+  select(
+    tenure_months,
+    monthly_charges,
+    total_charges,
+    num_complaints,
+    support_calls,
+    churn_num
+  )
+
+correlation_matrix <- cor(
+  numeric_data,
+  use = "pairwise.complete.obs"
+)
+
+correlation_data <- as.data.frame(
+  as.table(correlation_matrix)
+)
+
+ggplot(
+  correlation_data,
+  aes(x = Var1, y = Var2, fill = Freq)
+) +
+  geom_tile(color = "white") +
+  geom_text(
+    aes(label = round(Freq, 2)),
+    size = 3.5
+  ) +
+  scale_fill_gradient2(
+    low = "#E76F51",
+    mid = "white",
+    high = "#2E86AB",
+    midpoint = 0,
+    limits = c(-1, 1)
+  ) +
+  labs(
+    title = "Correlation Heatmap Antarvariabel",
+    x = "",
+    y = "",
+    fill = "Korelasi"
+  ) +
+  theme_minimal() +
+  theme(
+    axis.text.x = element_text(
+      angle = 45,
+      hjust = 1
+    )
+  )
+```
+
+# Comparative Analysis
+
+Bagian ini menggabungkan beberapa variabel kategorikal untuk melihat pola churn secara lebih mendalam.
+
+## Churn Berdasarkan Kombinasi Kontrak dan Segmen
+
+```{r}
+contract_segment <- customer_churn %>%
+  group_by(contract_type, segment) %>%
+  summarise(
+    total_customer = n(),
+    total_churn = sum(churn == "Churn"),
+    churn_rate = total_churn / total_customer,
+    .groups = "drop"
+  )
+
+ggplot(
+  contract_segment,
+  aes(
+    x = contract_type,
+    y = segment,
+    fill = churn_rate
+  )
+) +
+  geom_tile(color = "white") +
+  geom_text(
+    aes(
+      label = paste0(
+        percent(churn_rate, accuracy = 0.1),
+        "\n(n=", total_customer, ")"
+      )
+    ),
+    size = 3.5
+  ) +
+  scale_fill_gradient(
+    low = "#D9EAF2",
+    high = "#E76F51",
+    labels = percent
+  ) +
+  labs(
+    title = "Churn Rate Berdasarkan Kontrak dan Segmen",
+    x = "Jenis Kontrak",
+    y = "Segmen Pelanggan",
+    fill = "Churn Rate"
+  ) +
+  theme_minimal()
+```
+
+## Churn Berdasarkan Wilayah dan Jenis Kontrak
+
+```{r}
+region_contract <- customer_churn %>%
+  group_by(region, contract_type) %>%
+  summarise(
+    total_customer = n(),
+    total_churn = sum(churn == "Churn"),
+    churn_rate = total_churn / total_customer,
+    .groups = "drop"
+  )
+
+ggplot(
+  region_contract,
+  aes(
+    x = contract_type,
+    y = region,
+    fill = churn_rate
+  )
+) +
+  geom_tile(color = "white") +
+  geom_text(
+    aes(label = percent(churn_rate, accuracy = 0.1)),
+    size = 3
+  ) +
+  scale_fill_gradient(
+    low = "#D9EAF2",
+    high = "#E76F51",
+    labels = percent
+  ) +
+  labs(
+    title = "Churn Rate Berdasarkan Wilayah dan Kontrak",
+    x = "Jenis Kontrak",
+    y = "Wilayah",
+    fill = "Churn Rate"
+  ) +
+  theme_minimal()
+```
+
+# Summary and Business Insights
+
+## Ringkasan Churn Berdasarkan Variabel Kategorikal
+
+Tabel berikut digunakan untuk membandingkan churn rate pada setiap kategori.
+
+```{r}
+categorical_summary <- bind_rows(
+  customer_churn %>%
+    group_by(region) %>%
+    summarise(
+      variable = "Region",
+      category = as.character(first(region)),
+      total_customer = n(),
+      total_churn = sum(churn == "Churn"),
+      churn_rate = total_churn / total_customer,
+      .groups = "drop"
+    ) %>%
+    select(variable, category, total_customer, total_churn, churn_rate),
+
+  customer_churn %>%
+    group_by(segment) %>%
+    summarise(
+      variable = "Segment",
+      category = as.character(first(segment)),
+      total_customer = n(),
+      total_churn = sum(churn == "Churn"),
+      churn_rate = total_churn / total_customer,
+      .groups = "drop"
+    ) %>%
+    select(variable, category, total_customer, total_churn, churn_rate),
+
+  customer_churn %>%
+    group_by(contract_type) %>%
+    summarise(
+      variable = "Contract",
+      category = as.character(first(contract_type)),
+      total_customer = n(),
+      total_churn = sum(churn == "Churn"),
+      churn_rate = total_churn / total_customer,
+      .groups = "drop"
+    ) %>%
+    select(variable, category, total_customer, total_churn, churn_rate),
+
+  customer_churn %>%
+    group_by(payment_method) %>%
+    summarise(
+      variable = "Payment Method",
+      category = as.character(first(payment_method)),
+      total_customer = n(),
+      total_churn = sum(churn == "Churn"),
+      churn_rate = total_churn / total_customer,
+      .groups = "drop"
+    ) %>%
+    select(variable, category, total_customer, total_churn, churn_rate),
+
+  customer_churn %>%
+    group_by(internet_service) %>%
+    summarise(
+      variable = "Internet Service",
+      category = as.character(first(internet_service)),
+      total_customer = n(),
+      total_churn = sum(churn == "Churn"),
+      churn_rate = total_churn / total_customer,
+      .groups = "drop"
+    ) %>%
+    select(variable, category, total_customer, total_churn, churn_rate)
+)
+
+categorical_summary %>%
+  arrange(desc(churn_rate)) %>%
+  mutate(churn_rate = percent(churn_rate, accuracy = 0.1)) %>%
+  knitr::kable(
+    caption = "Churn Rate Berdasarkan Kategori Pelanggan"
+  )
+```
+
+## Faktor dengan Churn Rate Tertinggi
+
+```{r}
+categorical_summary %>%
+  group_by(variable) %>%
+  slice_max(
+    order_by = churn_rate,
+    n = 1,
+    with_ties = FALSE
+  ) %>%
+  ungroup() %>%
+  mutate(
+    churn_rate = percent(churn_rate, accuracy = 0.1)
+  ) %>%
+  knitr::kable(
+    caption = "Kategori dengan Churn Rate Tertinggi pada Setiap Variabel"
+  )
+```
+
+## Rangkuman Statistik Numerik Berdasarkan Churn
+
+```{r}
+customer_churn %>%
+  group_by(churn) %>%
+  summarise(
+    total_customer = n(),
+    avg_tenure = mean(tenure_months),
+    avg_monthly_charges = mean(monthly_charges),
+    avg_total_charges = mean(total_charges, na.rm = TRUE),
+    avg_complaints = mean(num_complaints),
+    avg_support_calls = mean(support_calls),
+    .groups = "drop"
+  ) %>%
+  knitr::kable(
+    digits = 2,
+    caption = "Rata-rata Karakteristik Pelanggan Berdasarkan Status Churn"
+  )
+```
+
+## Kesimpulan dan Insight
+
+Berdasarkan seluruh proses Exploratory Data Analysis, beberapa aspek yang perlu diperhatikan adalah:
+
+1. **Customer Churn:** Mengidentifikasi proporsi pelanggan yang berhenti berlangganan dibandingkan pelanggan yang masih aktif.
+
+2. **Customer Segmentation:** Mengetahui wilayah dan segmen pelanggan yang memiliki tingkat churn relatif tinggi.
+
+3. **Contract Type:** Membandingkan tingkat churn berdasarkan jenis kontrak untuk melihat apakah pelanggan dengan kontrak bulanan memiliki kecenderungan churn yang berbeda dari kontrak jangka panjang.
+
+4. **Customer Tenure:** Menganalisis hubungan antara lama berlangganan dengan status churn, khususnya apakah pelanggan dengan masa berlangganan lebih singkat menunjukkan tingkat churn lebih tinggi.
+
+5. **Financial Analysis:** Mengidentifikasi perbedaan biaya bulanan dan total biaya antara pelanggan yang churn dan tidak churn.
+
+6. **Customer Experience:** Menganalisis apakah jumlah keluhan dan panggilan customer support memiliki pola hubungan dengan churn.
+
+7. **Customer Behavior:** Menggabungkan beberapa variabel untuk menemukan kelompok pelanggan yang perlu mendapatkan perhatian lebih.
+
+Hasil EDA ini dapat digunakan sebagai dasar untuk menentukan variabel yang akan dianalisis lebih lanjut dalam tahap pemodelan Machine Learning, khususnya prediksi Customer Churn.
+
+Perlu diperhatikan bahwa hubungan antarvariabel dalam EDA tidak secara otomatis menunjukkan hubungan sebab-akibat. Analisis lanjutan diperlukan untuk menguji temuan tersebut.
+
+# Export Clean Dataset
+
+Dataset yang telah melalui proses cleaning dapat disimpan untuk digunakan dalam analisis selanjutnya.
+
+```{r}
+write.csv(
+  customer_churn,
+  "customer_churn_clean.csv",
+  row.names = FALSE
+)
+```
+
+**End of Exploratory Data Analysis - Customer Churn**

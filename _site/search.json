@@ -1,0 +1,1855 @@
+[
+  {
+    "objectID": "intro.html",
+    "href": "intro.html",
+    "title": "Enter Your Main Content",
+    "section": "",
+    "text": "Published\nNovember 15, 2026\n\n\nDataset merupakan kumpulan data yang disusun secara terstruktur, biasanya dalam bentuk tabel, sehingga dapat digunakan untuk analisis dan pengambilan keputusan.\nSebuah dataset umumnya terdiri dari:\n\nBaris (Rows): Setiap baris merepresentasikan satu observasi atau satu data.\nKolom (Columns): Setiap kolom merepresentasikan variabel atau atribut dari suatu observasi.\n\nPada analisis ini, kita akan menggunakan dataset Customer Churn yang berisi informasi pelanggan suatu layanan internet.\nDataset ini memiliki 3.000 observasi dan 13 variabel yang menggambarkan karakteristik pelanggan, jenis layanan, biaya berlangganan, hingga status pelanggan yang berhenti berlangganan (churn).\nContoh beberapa data:\n\n\n\ncustomer_id\nregion\ncontract_type\nmonthly_charges\nchurn\n\n\n\n\nCUST-00001\nSulawesi\nBulanan\n373000\n1\n\n\nCUST-00002\nSumatera\nBulanan\n345000\n1\n\n\nCUST-00003\nSulawesi\nTahunan\n471000\n0\n\n\nCUST-00004\nKalimantan\nBulanan\n555000\n1\n\n\nCUST-00005\nJawa\nBulanan\n340000\n0\n\n\n\nCatatan: Tabel di atas merupakan contoh beberapa observasi dari dataset asli.\n\n\n\nCustomer Churn merupakan kondisi ketika pelanggan berhenti menggunakan atau berlangganan suatu layanan.\nAnalisis customer churn penting bagi perusahaan karena dapat membantu memahami karakteristik pelanggan yang berhenti berlangganan serta mengidentifikasi faktor-faktor yang berkaitan dengan keputusan tersebut.\nDataset yang digunakan dalam latihan ini memiliki beberapa kelompok variabel:\n\n\n\nKelompok\nVariabel\n\n\n\n\nIdentitas Pelanggan\ncustomer_id\n\n\nInformasi Pendaftaran\nsignup_date, region\n\n\nSegmentasi\nsegment\n\n\nInformasi Kontrak\ncontract_type\n\n\nPembayaran\npayment_method\n\n\nLayanan\ninternet_service\n\n\nAktivitas Berlangganan\ntenure_months\n\n\nInformasi Biaya\nmonthly_charges, total_charges\n\n\nPengalaman Pelanggan\nnum_complaints, support_calls\n\n\nTarget Analisis\nchurn\n\n\n\nKeterangan variabel churn:\n\n0 = Pelanggan tidak berhenti berlangganan.\n1 = Pelanggan berhenti berlangganan.\n\nVariabel churn akan menjadi fokus utama dalam analisis karena kita ingin mengetahui pola dan karakteristik pelanggan yang mengalami churn.\n\n\n\nGitHub merupakan platform yang dapat digunakan untuk menyimpan dan mengelola file dalam sebuah repository.\nDataset Customer Churn pada latihan ini disimpan dalam repository GitHub sehingga dapat diakses secara langsung melalui internet.\nAlur pengambilan dataset:\nGitHub Repository → File CSV → Raw URL → RStudio → Dataset\nKeuntungan menggunakan dataset dari GitHub:\n\nTidak perlu mengunduh dataset secara manual.\nDataset dapat diakses melalui URL.\nMemudahkan proses reproduksi analisis.\nDataset dapat digunakan pada komputer yang berbeda selama memiliki akses internet dan URL masih tersedia.\n\n\n\n\nSalah satu hal penting ketika membaca dataset dari GitHub adalah memahami perbedaan antara URL halaman GitHub dan URL Raw.\n\n\nURL halaman GitHub digunakan untuk melihat file melalui browser.\nContoh:\nhttps://github.com/Muhammadrizkybagas/bookdown-template/blob/main/data/customer_churn.csv\nURL tersebut menampilkan halaman website GitHub, bukan isi file CSV secara langsung.\nKarena itu, URL halaman biasa tidak digunakan secara langsung untuk membaca dataset menggunakan read.csv().\n\n\n\nURL Raw GitHub digunakan untuk mengakses isi file secara langsung tanpa tampilan halaman GitHub.\nURL yang digunakan dalam latihan ini:\nhttps://raw.githubusercontent.com/Muhammadrizkybagas/bookdown-template/refs/heads/main/data/customer_churn.csv\nURL tersebut berisi data mentah dalam format CSV yang dapat dibaca oleh R.\nTips:\nCara mudah mengenali URL Raw adalah dengan memperhatikan alamatnya:\n\ngithub.com = URL halaman GitHub.\nraw.githubusercontent.com = URL data mentah (Raw).\n\n\n\n\n\nSetelah memperoleh URL Raw, langkah selanjutnya adalah membaca dataset menggunakan R.\nUntuk membaca file CSV, kita dapat menggunakan fungsi read.csv().\nMasukkan kode berikut ke dalam code chunk R pada file Quarto (.qmd).\n\n# URL dataset Customer Churn\nurl_customer &lt;-\n  \"https://raw.githubusercontent.com/Muhammadrizkybagas/bookdown-template/refs/heads/main/data/customer_churn.csv\"\n\n# Membaca dataset\ncustomer_churn &lt;- read.csv(\n  url_customer,\n  stringsAsFactors = FALSE\n)\n\nPenjelasan kode:\n\nurl_customer: Variabel yang digunakan untuk menyimpan alamat Raw URL dataset.\nread.csv(): Fungsi untuk membaca file CSV, baik dari penyimpanan lokal maupun URL.\nstringsAsFactors = FALSE: Memastikan kolom teks dibaca sebagai karakter, bukan langsung diubah menjadi factor.\ncustomer_churn: Variabel yang digunakan untuk menyimpan dataset dalam bentuk data frame.\n\n\n\n\nSetelah dataset berhasil dibaca, kita perlu melakukan pemeriksaan awal untuk memahami isi dan struktur data.\n\n\n\nhead(customer_churn)\n\n  customer_id signup_date             region segment contract_type\n1  CUST-00001  2024-12-02           Sulawesi    UMKM       Bulanan\n2  CUST-00002  2024-05-29           Sumatera  Retail       Bulanan\n3  CUST-00003  2024-12-05           Sulawesi  Retail       Tahunan\n4  CUST-00004  2023-07-21         Kalimantan    UMKM       Bulanan\n5  CUST-00005  2025-05-03               Jawa  Retail       Bulanan\n6  CUST-00006  2023-10-13 Bali-Nusa Tenggara    UMKM       Bulanan\n   payment_method internet_service tenure_months monthly_charges total_charges\n1 Virtual Account              DSL             9          373000       3231000\n2   Transfer Bank            Fiber            13          345000       4419000\n3    Kartu Kredit            Fiber            44          471000            NA\n4   Transfer Bank Mobile Broadband             4          555000       2296000\n5   Transfer Bank            Fiber             4          340000            NA\n6        E-Wallet            Fiber            11          597000       6351000\n  num_complaints support_calls churn\n1              3             6     1\n2              4             5     1\n3              2             3     0\n4              0             2     1\n5              1             1     0\n6              0             0     0\n\n\nFungsi head() digunakan untuk menampilkan enam baris pertama dari dataset.\n\n\n\n\nnrow(customer_churn)\n\n[1] 3000\n\n\nHasil:\n[1] 3000\nArtinya, dataset memiliki 3.000 observasi atau baris data.\n\n\n\n\nncol(customer_churn)\n\n[1] 13\n\n\nHasil:\n[1] 13\nArtinya, terdapat 13 variabel dalam dataset.\n\n\n\n\nnames(customer_churn)\n\n [1] \"customer_id\"      \"signup_date\"      \"region\"           \"segment\"         \n [5] \"contract_type\"    \"payment_method\"   \"internet_service\" \"tenure_months\"   \n [9] \"monthly_charges\"  \"total_charges\"    \"num_complaints\"   \"support_calls\"   \n[13] \"churn\"           \n\n\nHasil:\n[1] \"customer_id\"\n[2] \"signup_date\"\n[3] \"region\"\n[4] \"segment\"\n[5] \"contract_type\"\n[6] \"payment_method\"\n[7] \"internet_service\"\n[8] \"tenure_months\"\n[9] \"monthly_charges\"\n[10] \"total_charges\"\n[11] \"num_complaints\"\n[12] \"support_calls\"\n[13] \"churn\"\n\n\n\n\nstr(customer_churn)\n\n'data.frame':   3000 obs. of  13 variables:\n $ customer_id     : chr  \"CUST-00001\" \"CUST-00002\" \"CUST-00003\" \"CUST-00004\" ...\n $ signup_date     : chr  \"2024-12-02\" \"2024-05-29\" \"2024-12-05\" \"2023-07-21\" ...\n $ region          : chr  \"Sulawesi\" \"Sumatera\" \"Sulawesi\" \"Kalimantan\" ...\n $ segment         : chr  \"UMKM\" \"Retail\" \"Retail\" \"UMKM\" ...\n $ contract_type   : chr  \"Bulanan\" \"Bulanan\" \"Tahunan\" \"Bulanan\" ...\n $ payment_method  : chr  \"Virtual Account\" \"Transfer Bank\" \"Kartu Kredit\" \"Transfer Bank\" ...\n $ internet_service: chr  \"DSL\" \"Fiber\" \"Fiber\" \"Mobile Broadband\" ...\n $ tenure_months   : int  9 13 44 4 4 11 20 33 34 63 ...\n $ monthly_charges : num  373000 345000 471000 555000 340000 597000 371000 435000 308000 591000 ...\n $ total_charges   : num  3231000 4419000 NA 2296000 NA ...\n $ num_complaints  : int  3 4 2 0 1 0 1 2 1 1 ...\n $ support_calls   : int  6 5 3 2 1 0 3 6 1 1 ...\n $ churn           : int  1 1 0 1 0 0 0 0 0 0 ...\n\n\nFungsi str() digunakan untuk melihat struktur dataset, termasuk nama variabel, tipe data, dan beberapa contoh nilainya.\n\n\n\n\nsummary(customer_churn)\n\n    customer_id      signup_date         region          segment    \n Length   :3000   Length   :3000   Length   :3000   Length   :3000  \n N.unique :3000   N.unique :1017   N.unique :   5   N.unique :   3  \n N.blank  :   0   N.blank  :   0   N.blank  :   0   N.blank  :   0  \n Min.nchar:  10   Min.nchar:  10   Min.nchar:   4   Min.nchar:   4  \n Max.nchar:  10   Max.nchar:  10   Max.nchar:  18   Max.nchar:   8  \n                                                                    \n                                                                    \n   contract_type    payment_method  internet_service tenure_months  \n Length   :3000   Length   :3000   Length   :3000    Min.   : 1.00  \n N.unique :   3   N.unique :   4   N.unique :   3    1st Qu.:13.00  \n N.blank  :   0   N.blank  :   0   N.blank  :   0    Median :25.00  \n Min.nchar:   7   Min.nchar:   8   Min.nchar:   3    Mean   :26.52  \n Max.nchar:   9   Max.nchar:  15   Max.nchar:  16    3rd Qu.:35.00  \n                                                     Max.   :71.00  \n                                                                    \n monthly_charges   total_charges      num_complaints  support_calls   \n Min.   : 160000   Min.   :  214000   Min.   :0.000   Min.   : 0.000  \n 1st Qu.: 304000   1st Qu.: 5127000   1st Qu.:0.000   1st Qu.: 1.000  \n Median : 393000   Median : 9231000   Median :1.000   Median : 2.000  \n Mean   : 423952   Mean   :11296852   Mean   :1.128   Mean   : 2.429  \n 3rd Qu.: 497250   3rd Qu.:15236500   3rd Qu.:2.000   3rd Qu.: 3.000  \n Max.   :1353000   Max.   :59536000   Max.   :7.000   Max.   :13.000  \n                   NAs    :45                                         \n     churn       \n Min.   :0.0000  \n 1st Qu.:0.0000  \n Median :0.0000  \n Mean   :0.3493  \n 3rd Qu.:1.0000  \n Max.   :1.0000  \n                 \n\n\nFungsi summary() digunakan untuk memperoleh ringkasan statistik dari setiap variabel.\nUntuk variabel numerik, hasilnya dapat mencakup nilai minimum, kuartil, median, mean, dan maksimum.\n\n\n\n\nSelain menggunakan head(), kita juga dapat menampilkan seluruh dataset dalam bentuk tabel interaktif menggunakan package DT.\nPackage DT menyediakan fungsi datatable() yang memungkinkan pengguna mencari, mengurutkan, dan memfilter data secara langsung.\nJika package DT belum terpasang, jalankan satu kali di Console:\ninstall.packages(\"DT\")\nKemudian panggil library:\n\nlibrary(DT)\n\nWarning: package 'DT' was built under R version 4.6.2\n\n\nSetelah itu, tampilkan dataset:\n\ndatatable(\n  customer_churn,\n  filter = \"top\",\n  rownames = FALSE,\n  options = list(\n    pageLength = 10,\n    scrollX = TRUE\n  )\n)\n\n\n\n\n\nHasilnya berupa tabel interaktif yang memiliki beberapa fitur:\n\nSearch: Mencari data berdasarkan kata kunci.\nFilter: Menyaring data berdasarkan kolom tertentu.\nSorting: Mengurutkan data berdasarkan nilai kolom.\nPagination: Berpindah halaman untuk melihat data lainnya.\nScrollX: Menggeser tabel secara horizontal apabila kolom terlalu banyak.\n\n\n\n\n\n\n\n\n\n\n\nMasalah\nKemungkinan Penyebab\n\n\n\n\nError saat read.csv()\nMenggunakan URL halaman GitHub, bukan URL Raw.\n\n\nDataset tidak ditemukan\nURL salah atau file sudah dipindahkan.\n\n\nError saat memanggil datatable()\nPackage DT belum terpasang atau belum dipanggil menggunakan library(DT).\n\n\nData tidak tampil dengan benar\nFormat file atau proses pembacaan data tidak sesuai.\n\n\nTidak dapat mengakses URL\nKoneksi internet bermasalah atau repository tidak dapat diakses.\n\n\n\n\n\n\nBerdasarkan materi ini, beberapa hal yang perlu dipahami adalah:\n\nDataset merupakan kumpulan data yang terdiri dari baris dan kolom.\nDataset Customer Churn berisi 3.000 observasi dan 13 variabel.\nDataset disimpan dalam repository GitHub agar dapat diakses secara langsung melalui internet.\nGunakan URL Raw GitHub untuk membaca dataset menggunakan R.\nFungsi read.csv() digunakan untuk membaca file CSV.\nGunakan head(), nrow(), ncol(), names(), str(), dan summary() untuk memahami struktur dataset.\nGunakan datatable() dari package DT untuk menampilkan data secara interaktif.\n\nSetelah memahami struktur dan karakteristik dataset, tahap berikutnya adalah melakukan Data Cleaning dan Exploratory Data Analysis (EDA) untuk menemukan pola, hubungan antarvariabel, serta faktor-faktor yang berkaitan dengan customer churn.",
+    "crumbs": [
+      "**INTRODUCTION**"
+    ]
+  },
+  {
+    "objectID": "intro.html#sub-content-1",
+    "href": "intro.html#sub-content-1",
+    "title": "Enter Your Main Content",
+    "section": "",
+    "text": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer nec odio. Praesent libero. Sed cursus ante dapibus diam. Sed nisi. Nulla quis sem at nibh elementum imperdiet.",
+    "crumbs": [
+      "**INTRODUCTION**"
+    ]
+  },
+  {
+    "objectID": "intro.html#sub-content-2",
+    "href": "intro.html#sub-content-2",
+    "title": "Enter Your Main Content",
+    "section": "",
+    "text": "Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.",
+    "crumbs": [
+      "**INTRODUCTION**"
+    ]
+  },
+  {
+    "objectID": "intro.html#sub-content-3",
+    "href": "intro.html#sub-content-3",
+    "title": "Enter Your Main Content",
+    "section": "",
+    "text": "Curabitur sodales ligula in libero. Sed dignissim lacinia nunc. Curabitur tortor. Pellentesque nibh. Aenean quam. In scelerisque sem at dolor.",
+    "crumbs": [
+      "**INTRODUCTION**"
+    ]
+  },
+  {
+    "objectID": "intro.html#sub-content-1-1",
+    "href": "intro.html#sub-content-1-1",
+    "title": "Enter Your Main Content",
+    "section": "2.1 Sub Content 1",
+    "text": "2.1 Sub Content 1\n\n\n\n\n\n\nNoteNote\n\n\n\nLorem ipsum dolor sit amet, consectetur adipiscing elit. Integer nec odio. Praesent libero. Sed cursus ante dapibus diam. Sed nisi. Nulla quis sem at nibh elementum imperdiet.",
+    "crumbs": [
+      "**INTRODUCTION**"
+    ]
+  },
+  {
+    "objectID": "intro.html#sub-content-2-1",
+    "href": "intro.html#sub-content-2-1",
+    "title": "Enter Your Main Content",
+    "section": "2.2 Sub Content 2",
+    "text": "2.2 Sub Content 2\n\n\n\n\n\n\nTipTip\n\n\n\nLorem ipsum dolor sit amet, consectetur adipiscing elit. Integer nec odio. Praesent libero. Sed cursus ante dapibus diam. Sed nisi. Nulla quis sem at nibh elementum imperdiet.",
+    "crumbs": [
+      "**INTRODUCTION**"
+    ]
+  },
+  {
+    "objectID": "intro.html#sub-content-3-1",
+    "href": "intro.html#sub-content-3-1",
+    "title": "Enter Your Main Content",
+    "section": "2.3 Sub Content 3",
+    "text": "2.3 Sub Content 3\n\n\n\n\n\n\nWarningWarning\n\n\n\nLorem ipsum dolor sit amet, consectetur adipiscing elit. Integer nec odio. Praesent libero. Sed cursus ante dapibus diam. Sed nisi. Nulla quis sem at nibh elementum imperdiet.",
+    "crumbs": [
+      "**INTRODUCTION**"
+    ]
+  },
+  {
+    "objectID": "intro.html#sub-content-1-2",
+    "href": "intro.html#sub-content-1-2",
+    "title": "Enter Your Main Content",
+    "section": "3.1 Sub Content 1",
+    "text": "3.1 Sub Content 1\n\nLorem ipsum dolor sit amet, consectetur adipiscing elit. Integer nec odio. Praesent libero. Sed cursus ante dapibus diam. Sed nisi. Nulla quis sem at nibh elementum imperdiet.",
+    "crumbs": [
+      "**INTRODUCTION**"
+    ]
+  },
+  {
+    "objectID": "intro.html#sub-content-2-2",
+    "href": "intro.html#sub-content-2-2",
+    "title": "Enter Your Main Content",
+    "section": "3.2 Sub Content 2",
+    "text": "3.2 Sub Content 2\nLorem ipsum dolor sit amet, consectetur adipiscing elit. Integer nec odio. Praesent libero. Sed cursus ante dapibus diam. Sed nisi. Nulla quis sem at nibh elementum imperdiet.",
+    "crumbs": [
+      "**INTRODUCTION**"
+    ]
+  },
+  {
+    "objectID": "intro.html#sub-content-3-2",
+    "href": "intro.html#sub-content-3-2",
+    "title": "Enter Your Main Content",
+    "section": "3.3 Sub Content 3",
+    "text": "3.3 Sub Content 3\nLorem ipsum dolor sit amet, consectetur adipiscing elit. Integer nec odio. Praesent libero. Sed cursus ante dapibus diam. Sed nisi. Nulla quis sem at nibh elementum imperdiet.",
+    "crumbs": [
+      "**INTRODUCTION**"
+    ]
+  },
+  {
+    "objectID": "intro.html#sub-content-1-3",
+    "href": "intro.html#sub-content-1-3",
+    "title": "Enter Your Main Content",
+    "section": "4.1 Sub Content 1",
+    "text": "4.1 Sub Content 1",
+    "crumbs": [
+      "**INTRODUCTION**"
+    ]
+  },
+  {
+    "objectID": "intro.html#sub-content-2-3",
+    "href": "intro.html#sub-content-2-3",
+    "title": "Enter Your Main Content",
+    "section": "4.2 Sub Content 2",
+    "text": "4.2 Sub Content 2",
+    "crumbs": [
+      "**INTRODUCTION**"
+    ]
+  },
+  {
+    "objectID": "intro.html#sub-content-3-3",
+    "href": "intro.html#sub-content-3-3",
+    "title": "Enter Your Main Content",
+    "section": "4.3 Sub Content 3",
+    "text": "4.3 Sub Content 3",
+    "crumbs": [
+      "**INTRODUCTION**"
+    ]
+  },
+  {
+    "objectID": "intro.html#sub-content-1-4",
+    "href": "intro.html#sub-content-1-4",
+    "title": "Enter Your Main Content",
+    "section": "5.1 Sub Content 1",
+    "text": "5.1 Sub Content 1",
+    "crumbs": [
+      "**INTRODUCTION**"
+    ]
+  },
+  {
+    "objectID": "intro.html#sub-content-2-4",
+    "href": "intro.html#sub-content-2-4",
+    "title": "Enter Your Main Content",
+    "section": "5.2 Sub Content 2",
+    "text": "5.2 Sub Content 2",
+    "crumbs": [
+      "**INTRODUCTION**"
+    ]
+  },
+  {
+    "objectID": "intro.html#sub-content-3-4",
+    "href": "intro.html#sub-content-3-4",
+    "title": "Enter Your Main Content",
+    "section": "5.3 Sub Content 3",
+    "text": "5.3 Sub Content 3",
+    "crumbs": [
+      "**INTRODUCTION**"
+    ]
+  },
+  {
+    "objectID": "intro.html#sub-content-1-5",
+    "href": "intro.html#sub-content-1-5",
+    "title": "Enter Your Main Content",
+    "section": "6.1 Sub Content 1",
+    "text": "6.1 Sub Content 1",
+    "crumbs": [
+      "**INTRODUCTION**"
+    ]
+  },
+  {
+    "objectID": "intro.html#sub-content-2-5",
+    "href": "intro.html#sub-content-2-5",
+    "title": "Enter Your Main Content",
+    "section": "6.2 Sub Content 2",
+    "text": "6.2 Sub Content 2",
+    "crumbs": [
+      "**INTRODUCTION**"
+    ]
+  },
+  {
+    "objectID": "intro.html#sub-content-3-5",
+    "href": "intro.html#sub-content-3-5",
+    "title": "Enter Your Main Content",
+    "section": "6.3 Sub Content 3",
+    "text": "6.3 Sub Content 3",
+    "crumbs": [
+      "**INTRODUCTION**"
+    ]
+  },
+  {
+    "objectID": "chapter4.html",
+    "href": "chapter4.html",
+    "title": "ENTER YOUR CONTENT",
+    "section": "",
+    "text": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.\n\n\nLorem ipsum dolor sit amet, consectetur adipiscing elit. Integer nec odio. Praesent libero. Sed cursus ante dapibus diam. Sed nisi. Nulla quis sem at nibh elementum imperdiet.\n\n\n\nDuis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.\n\n\n\nCurabitur sodales ligula in libero. Sed dignissim lacinia nunc. Curabitur tortor. Pellentesque nibh. Aenean quam. In scelerisque sem at dolor.",
+    "crumbs": [
+      "**BAB**",
+      "4. Bab 4"
+    ]
+  },
+  {
+    "objectID": "chapter4.html#sub-content-1",
+    "href": "chapter4.html#sub-content-1",
+    "title": "ENTER YOUR CONTENT",
+    "section": "",
+    "text": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer nec odio. Praesent libero. Sed cursus ante dapibus diam. Sed nisi. Nulla quis sem at nibh elementum imperdiet.",
+    "crumbs": [
+      "**BAB**",
+      "4. Bab 4"
+    ]
+  },
+  {
+    "objectID": "chapter4.html#sub-content-2",
+    "href": "chapter4.html#sub-content-2",
+    "title": "ENTER YOUR CONTENT",
+    "section": "",
+    "text": "Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.",
+    "crumbs": [
+      "**BAB**",
+      "4. Bab 4"
+    ]
+  },
+  {
+    "objectID": "chapter4.html#sub-content-3",
+    "href": "chapter4.html#sub-content-3",
+    "title": "ENTER YOUR CONTENT",
+    "section": "",
+    "text": "Curabitur sodales ligula in libero. Sed dignissim lacinia nunc. Curabitur tortor. Pellentesque nibh. Aenean quam. In scelerisque sem at dolor.",
+    "crumbs": [
+      "**BAB**",
+      "4. Bab 4"
+    ]
+  },
+  {
+    "objectID": "chapter4.html#sub-content-1-1",
+    "href": "chapter4.html#sub-content-1-1",
+    "title": "ENTER YOUR CONTENT",
+    "section": "2.1 Sub Content 1",
+    "text": "2.1 Sub Content 1\n\n\n\n\n\n\nNoteNote\n\n\n\nLorem ipsum dolor sit amet, consectetur adipiscing elit. Integer nec odio. Praesent libero. Sed cursus ante dapibus diam. Sed nisi. Nulla quis sem at nibh elementum imperdiet.",
+    "crumbs": [
+      "**BAB**",
+      "4. Bab 4"
+    ]
+  },
+  {
+    "objectID": "chapter4.html#sub-content-2-1",
+    "href": "chapter4.html#sub-content-2-1",
+    "title": "ENTER YOUR CONTENT",
+    "section": "2.2 Sub Content 2",
+    "text": "2.2 Sub Content 2\n\n\n\n\n\n\nTipTip\n\n\n\nLorem ipsum dolor sit amet, consectetur adipiscing elit. Integer nec odio. Praesent libero. Sed cursus ante dapibus diam. Sed nisi. Nulla quis sem at nibh elementum imperdiet.",
+    "crumbs": [
+      "**BAB**",
+      "4. Bab 4"
+    ]
+  },
+  {
+    "objectID": "chapter4.html#sub-content-3-1",
+    "href": "chapter4.html#sub-content-3-1",
+    "title": "ENTER YOUR CONTENT",
+    "section": "2.3 Sub Content 3",
+    "text": "2.3 Sub Content 3\n\n\n\n\n\n\nWarningWarning\n\n\n\nLorem ipsum dolor sit amet, consectetur adipiscing elit. Integer nec odio. Praesent libero. Sed cursus ante dapibus diam. Sed nisi. Nulla quis sem at nibh elementum imperdiet.",
+    "crumbs": [
+      "**BAB**",
+      "4. Bab 4"
+    ]
+  },
+  {
+    "objectID": "chapter4.html#sub-content-1-2",
+    "href": "chapter4.html#sub-content-1-2",
+    "title": "ENTER YOUR CONTENT",
+    "section": "3.1 Sub Content 1",
+    "text": "3.1 Sub Content 1\n\nLorem ipsum dolor sit amet, consectetur adipiscing elit. Integer nec odio. Praesent libero. Sed cursus ante dapibus diam. Sed nisi. Nulla quis sem at nibh elementum imperdiet.",
+    "crumbs": [
+      "**BAB**",
+      "4. Bab 4"
+    ]
+  },
+  {
+    "objectID": "chapter4.html#sub-content-2-2",
+    "href": "chapter4.html#sub-content-2-2",
+    "title": "ENTER YOUR CONTENT",
+    "section": "3.2 Sub Content 2",
+    "text": "3.2 Sub Content 2\nLorem ipsum dolor sit amet, consectetur adipiscing elit. Integer nec odio. Praesent libero. Sed cursus ante dapibus diam. Sed nisi. Nulla quis sem at nibh elementum imperdiet.",
+    "crumbs": [
+      "**BAB**",
+      "4. Bab 4"
+    ]
+  },
+  {
+    "objectID": "chapter4.html#sub-content-3-2",
+    "href": "chapter4.html#sub-content-3-2",
+    "title": "ENTER YOUR CONTENT",
+    "section": "3.3 Sub Content 3",
+    "text": "3.3 Sub Content 3\nLorem ipsum dolor sit amet, consectetur adipiscing elit. Integer nec odio. Praesent libero. Sed cursus ante dapibus diam. Sed nisi. Nulla quis sem at nibh elementum imperdiet.",
+    "crumbs": [
+      "**BAB**",
+      "4. Bab 4"
+    ]
+  },
+  {
+    "objectID": "chapter4.html#sub-content-1-3",
+    "href": "chapter4.html#sub-content-1-3",
+    "title": "ENTER YOUR CONTENT",
+    "section": "4.1 Sub Content 1",
+    "text": "4.1 Sub Content 1",
+    "crumbs": [
+      "**BAB**",
+      "4. Bab 4"
+    ]
+  },
+  {
+    "objectID": "chapter4.html#sub-content-2-3",
+    "href": "chapter4.html#sub-content-2-3",
+    "title": "ENTER YOUR CONTENT",
+    "section": "4.2 Sub Content 2",
+    "text": "4.2 Sub Content 2",
+    "crumbs": [
+      "**BAB**",
+      "4. Bab 4"
+    ]
+  },
+  {
+    "objectID": "chapter4.html#sub-content-3-3",
+    "href": "chapter4.html#sub-content-3-3",
+    "title": "ENTER YOUR CONTENT",
+    "section": "4.3 Sub Content 3",
+    "text": "4.3 Sub Content 3",
+    "crumbs": [
+      "**BAB**",
+      "4. Bab 4"
+    ]
+  },
+  {
+    "objectID": "chapter4.html#sub-content-1-4",
+    "href": "chapter4.html#sub-content-1-4",
+    "title": "ENTER YOUR CONTENT",
+    "section": "5.1 Sub Content 1",
+    "text": "5.1 Sub Content 1",
+    "crumbs": [
+      "**BAB**",
+      "4. Bab 4"
+    ]
+  },
+  {
+    "objectID": "chapter4.html#sub-content-2-4",
+    "href": "chapter4.html#sub-content-2-4",
+    "title": "ENTER YOUR CONTENT",
+    "section": "5.2 Sub Content 2",
+    "text": "5.2 Sub Content 2",
+    "crumbs": [
+      "**BAB**",
+      "4. Bab 4"
+    ]
+  },
+  {
+    "objectID": "chapter4.html#sub-content-3-4",
+    "href": "chapter4.html#sub-content-3-4",
+    "title": "ENTER YOUR CONTENT",
+    "section": "5.3 Sub Content 3",
+    "text": "5.3 Sub Content 3",
+    "crumbs": [
+      "**BAB**",
+      "4. Bab 4"
+    ]
+  },
+  {
+    "objectID": "chapter4.html#sub-content-1-5",
+    "href": "chapter4.html#sub-content-1-5",
+    "title": "ENTER YOUR CONTENT",
+    "section": "6.1 Sub Content 1",
+    "text": "6.1 Sub Content 1",
+    "crumbs": [
+      "**BAB**",
+      "4. Bab 4"
+    ]
+  },
+  {
+    "objectID": "chapter4.html#sub-content-2-5",
+    "href": "chapter4.html#sub-content-2-5",
+    "title": "ENTER YOUR CONTENT",
+    "section": "6.2 Sub Content 2",
+    "text": "6.2 Sub Content 2",
+    "crumbs": [
+      "**BAB**",
+      "4. Bab 4"
+    ]
+  },
+  {
+    "objectID": "chapter4.html#sub-content-3-5",
+    "href": "chapter4.html#sub-content-3-5",
+    "title": "ENTER YOUR CONTENT",
+    "section": "6.3 Sub Content 3",
+    "text": "6.3 Sub Content 3",
+    "crumbs": [
+      "**BAB**",
+      "4. Bab 4"
+    ]
+  },
+  {
+    "objectID": "chapter2.html",
+    "href": "chapter2.html",
+    "title": "ENTER YOUR CONTENT",
+    "section": "",
+    "text": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.\n\n\nLorem ipsum dolor sit amet, consectetur adipiscing elit. Integer nec odio. Praesent libero. Sed cursus ante dapibus diam. Sed nisi. Nulla quis sem at nibh elementum imperdiet.\n\n\n\nDuis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.\n\n\n\nCurabitur sodales ligula in libero. Sed dignissim lacinia nunc. Curabitur tortor. Pellentesque nibh. Aenean quam. In scelerisque sem at dolor.",
+    "crumbs": [
+      "**BAB**",
+      "2. Bab 2"
+    ]
+  },
+  {
+    "objectID": "chapter2.html#sub-content-1",
+    "href": "chapter2.html#sub-content-1",
+    "title": "ENTER YOUR CONTENT",
+    "section": "",
+    "text": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer nec odio. Praesent libero. Sed cursus ante dapibus diam. Sed nisi. Nulla quis sem at nibh elementum imperdiet.",
+    "crumbs": [
+      "**BAB**",
+      "2. Bab 2"
+    ]
+  },
+  {
+    "objectID": "chapter2.html#sub-content-2",
+    "href": "chapter2.html#sub-content-2",
+    "title": "ENTER YOUR CONTENT",
+    "section": "",
+    "text": "Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.",
+    "crumbs": [
+      "**BAB**",
+      "2. Bab 2"
+    ]
+  },
+  {
+    "objectID": "chapter2.html#sub-content-3",
+    "href": "chapter2.html#sub-content-3",
+    "title": "ENTER YOUR CONTENT",
+    "section": "",
+    "text": "Curabitur sodales ligula in libero. Sed dignissim lacinia nunc. Curabitur tortor. Pellentesque nibh. Aenean quam. In scelerisque sem at dolor.",
+    "crumbs": [
+      "**BAB**",
+      "2. Bab 2"
+    ]
+  },
+  {
+    "objectID": "chapter2.html#sub-content-1-1",
+    "href": "chapter2.html#sub-content-1-1",
+    "title": "ENTER YOUR CONTENT",
+    "section": "2.1 Sub Content 1",
+    "text": "2.1 Sub Content 1\n\n\n\n\n\n\nNoteNote\n\n\n\nLorem ipsum dolor sit amet, consectetur adipiscing elit. Integer nec odio. Praesent libero. Sed cursus ante dapibus diam. Sed nisi. Nulla quis sem at nibh elementum imperdiet.",
+    "crumbs": [
+      "**BAB**",
+      "2. Bab 2"
+    ]
+  },
+  {
+    "objectID": "chapter2.html#sub-content-2-1",
+    "href": "chapter2.html#sub-content-2-1",
+    "title": "ENTER YOUR CONTENT",
+    "section": "2.2 Sub Content 2",
+    "text": "2.2 Sub Content 2\n\n\n\n\n\n\nTipTip\n\n\n\nLorem ipsum dolor sit amet, consectetur adipiscing elit. Integer nec odio. Praesent libero. Sed cursus ante dapibus diam. Sed nisi. Nulla quis sem at nibh elementum imperdiet.",
+    "crumbs": [
+      "**BAB**",
+      "2. Bab 2"
+    ]
+  },
+  {
+    "objectID": "chapter2.html#sub-content-3-1",
+    "href": "chapter2.html#sub-content-3-1",
+    "title": "ENTER YOUR CONTENT",
+    "section": "2.3 Sub Content 3",
+    "text": "2.3 Sub Content 3\n\n\n\n\n\n\nWarningWarning\n\n\n\nLorem ipsum dolor sit amet, consectetur adipiscing elit. Integer nec odio. Praesent libero. Sed cursus ante dapibus diam. Sed nisi. Nulla quis sem at nibh elementum imperdiet.",
+    "crumbs": [
+      "**BAB**",
+      "2. Bab 2"
+    ]
+  },
+  {
+    "objectID": "chapter2.html#sub-content-1-2",
+    "href": "chapter2.html#sub-content-1-2",
+    "title": "ENTER YOUR CONTENT",
+    "section": "3.1 Sub Content 1",
+    "text": "3.1 Sub Content 1\n\nLorem ipsum dolor sit amet, consectetur adipiscing elit. Integer nec odio. Praesent libero. Sed cursus ante dapibus diam. Sed nisi. Nulla quis sem at nibh elementum imperdiet.",
+    "crumbs": [
+      "**BAB**",
+      "2. Bab 2"
+    ]
+  },
+  {
+    "objectID": "chapter2.html#sub-content-2-2",
+    "href": "chapter2.html#sub-content-2-2",
+    "title": "ENTER YOUR CONTENT",
+    "section": "3.2 Sub Content 2",
+    "text": "3.2 Sub Content 2\nLorem ipsum dolor sit amet, consectetur adipiscing elit. Integer nec odio. Praesent libero. Sed cursus ante dapibus diam. Sed nisi. Nulla quis sem at nibh elementum imperdiet.",
+    "crumbs": [
+      "**BAB**",
+      "2. Bab 2"
+    ]
+  },
+  {
+    "objectID": "chapter2.html#sub-content-3-2",
+    "href": "chapter2.html#sub-content-3-2",
+    "title": "ENTER YOUR CONTENT",
+    "section": "3.3 Sub Content 3",
+    "text": "3.3 Sub Content 3\nLorem ipsum dolor sit amet, consectetur adipiscing elit. Integer nec odio. Praesent libero. Sed cursus ante dapibus diam. Sed nisi. Nulla quis sem at nibh elementum imperdiet.",
+    "crumbs": [
+      "**BAB**",
+      "2. Bab 2"
+    ]
+  },
+  {
+    "objectID": "chapter2.html#sub-content-1-3",
+    "href": "chapter2.html#sub-content-1-3",
+    "title": "ENTER YOUR CONTENT",
+    "section": "4.1 Sub Content 1",
+    "text": "4.1 Sub Content 1",
+    "crumbs": [
+      "**BAB**",
+      "2. Bab 2"
+    ]
+  },
+  {
+    "objectID": "chapter2.html#sub-content-2-3",
+    "href": "chapter2.html#sub-content-2-3",
+    "title": "ENTER YOUR CONTENT",
+    "section": "4.2 Sub Content 2",
+    "text": "4.2 Sub Content 2",
+    "crumbs": [
+      "**BAB**",
+      "2. Bab 2"
+    ]
+  },
+  {
+    "objectID": "chapter2.html#sub-content-3-3",
+    "href": "chapter2.html#sub-content-3-3",
+    "title": "ENTER YOUR CONTENT",
+    "section": "4.3 Sub Content 3",
+    "text": "4.3 Sub Content 3",
+    "crumbs": [
+      "**BAB**",
+      "2. Bab 2"
+    ]
+  },
+  {
+    "objectID": "chapter2.html#sub-content-1-4",
+    "href": "chapter2.html#sub-content-1-4",
+    "title": "ENTER YOUR CONTENT",
+    "section": "5.1 Sub Content 1",
+    "text": "5.1 Sub Content 1",
+    "crumbs": [
+      "**BAB**",
+      "2. Bab 2"
+    ]
+  },
+  {
+    "objectID": "chapter2.html#sub-content-2-4",
+    "href": "chapter2.html#sub-content-2-4",
+    "title": "ENTER YOUR CONTENT",
+    "section": "5.2 Sub Content 2",
+    "text": "5.2 Sub Content 2",
+    "crumbs": [
+      "**BAB**",
+      "2. Bab 2"
+    ]
+  },
+  {
+    "objectID": "chapter2.html#sub-content-3-4",
+    "href": "chapter2.html#sub-content-3-4",
+    "title": "ENTER YOUR CONTENT",
+    "section": "5.3 Sub Content 3",
+    "text": "5.3 Sub Content 3",
+    "crumbs": [
+      "**BAB**",
+      "2. Bab 2"
+    ]
+  },
+  {
+    "objectID": "chapter2.html#sub-content-1-5",
+    "href": "chapter2.html#sub-content-1-5",
+    "title": "ENTER YOUR CONTENT",
+    "section": "6.1 Sub Content 1",
+    "text": "6.1 Sub Content 1",
+    "crumbs": [
+      "**BAB**",
+      "2. Bab 2"
+    ]
+  },
+  {
+    "objectID": "chapter2.html#sub-content-2-5",
+    "href": "chapter2.html#sub-content-2-5",
+    "title": "ENTER YOUR CONTENT",
+    "section": "6.2 Sub Content 2",
+    "text": "6.2 Sub Content 2",
+    "crumbs": [
+      "**BAB**",
+      "2. Bab 2"
+    ]
+  },
+  {
+    "objectID": "chapter2.html#sub-content-3-5",
+    "href": "chapter2.html#sub-content-3-5",
+    "title": "ENTER YOUR CONTENT",
+    "section": "6.3 Sub Content 3",
+    "text": "6.3 Sub Content 3",
+    "crumbs": [
+      "**BAB**",
+      "2. Bab 2"
+    ]
+  },
+  {
+    "objectID": "chapter1.html",
+    "href": "chapter1.html",
+    "title": "Exploratory Data Analysis - Customer Churn",
+    "section": "",
+    "text": "Pada tahap awal, dilakukan import library yang dibutuhkan untuk proses pengolahan data dan visualisasi. Dataset customer churn diperoleh dari repositori GitHub.\n\n\nTampilkan / Sembunyikan Kode\nlibrary(dplyr)\nlibrary(ggplot2)\nlibrary(tidyr)\nlibrary(scales)\n\n\n\n\nTampilkan / Sembunyikan Kode\n# Import data dari GitHub\ncustomer_churn &lt;- read.csv(\n  \"https://raw.githubusercontent.com/Muhammadrizkybagas/bookdown-template/refs/heads/main/data/customer_churn.csv\"\n)\n\n# Melihat data\nhead(customer_churn)\n\n\n  customer_id signup_date             region segment contract_type\n1  CUST-00001  2024-12-02           Sulawesi    UMKM       Bulanan\n2  CUST-00002  2024-05-29           Sumatera  Retail       Bulanan\n3  CUST-00003  2024-12-05           Sulawesi  Retail       Tahunan\n4  CUST-00004  2023-07-21         Kalimantan    UMKM       Bulanan\n5  CUST-00005  2025-05-03               Jawa  Retail       Bulanan\n6  CUST-00006  2023-10-13 Bali-Nusa Tenggara    UMKM       Bulanan\n   payment_method internet_service tenure_months monthly_charges total_charges\n1 Virtual Account              DSL             9          373000       3231000\n2   Transfer Bank            Fiber            13          345000       4419000\n3    Kartu Kredit            Fiber            44          471000            NA\n4   Transfer Bank Mobile Broadband             4          555000       2296000\n5   Transfer Bank            Fiber             4          340000            NA\n6        E-Wallet            Fiber            11          597000       6351000\n  num_complaints support_calls churn\n1              3             6     1\n2              4             5     1\n3              2             3     0\n4              0             2     1\n5              1             1     0\n6              0             0     0\n\n\n\n\n\nProses cleaning dilakukan untuk memastikan data memiliki format yang sesuai sebelum dianalisis.\n\n\nTampilkan / Sembunyikan Kode\ncustomer_churn &lt;- customer_churn %&gt;%\n  mutate(\n    across(where(is.character), trimws),\n    signup_date = as.Date(signup_date),\n    region = as.factor(region),\n    segment = as.factor(segment),\n    contract_type = as.factor(contract_type),\n    payment_method = as.factor(payment_method),\n    internet_service = as.factor(internet_service),\n    churn = factor(churn, levels = c(0, 1),\n                   labels = c(\"Tidak Churn\", \"Churn\"))\n  ) %&gt;%\n  distinct(customer_id, .keep_all = TRUE)\n\n\n\n\n\n\n\nTampilkan / Sembunyikan Kode\n# Struktur data\nstr(customer_churn)\n\n\n'data.frame':   3000 obs. of  13 variables:\n $ customer_id     : chr  \"CUST-00001\" \"CUST-00002\" \"CUST-00003\" \"CUST-00004\" ...\n $ signup_date     : Date, format: \"2024-12-02\" \"2024-05-29\" ...\n $ region          : Factor w/ 5 levels \"Bali-Nusa Tenggara\",..: 4 5 4 3 2 1 4 4 2 5 ...\n $ segment         : Factor w/ 3 levels \"Korporat\",\"Retail\",..: 3 2 2 3 2 3 2 2 2 3 ...\n $ contract_type   : Factor w/ 3 levels \"Bulanan\",\"Dua Tahun\",..: 1 1 3 1 1 1 3 2 3 2 ...\n $ payment_method  : Factor w/ 4 levels \"E-Wallet\",\"Kartu Kredit\",..: 4 3 2 3 3 1 3 1 1 3 ...\n $ internet_service: Factor w/ 3 levels \"DSL\",\"Fiber\",..: 1 2 2 3 2 2 2 3 1 2 ...\n $ tenure_months   : int  9 13 44 4 4 11 20 33 34 63 ...\n $ monthly_charges : num  373000 345000 471000 555000 340000 597000 371000 435000 308000 591000 ...\n $ total_charges   : num  3231000 4419000 NA 2296000 NA ...\n $ num_complaints  : int  3 4 2 0 1 0 1 2 1 1 ...\n $ support_calls   : int  6 5 3 2 1 0 3 6 1 1 ...\n $ churn           : Factor w/ 2 levels \"Tidak Churn\",..: 2 2 1 2 1 1 1 1 1 1 ...\n\n\nTampilkan / Sembunyikan Kode\n# Dimensi data\ndim(customer_churn)\n\n\n[1] 3000   13\n\n\nTampilkan / Sembunyikan Kode\n# Missing value setiap kolom\ncolSums(is.na(customer_churn))\n\n\n     customer_id      signup_date           region          segment \n               0                0                0                0 \n   contract_type   payment_method internet_service    tenure_months \n               0                0                0                0 \n monthly_charges    total_charges   num_complaints    support_calls \n               0               45                0                0 \n           churn \n               0 \n\n\nTampilkan / Sembunyikan Kode\n# Total missing value\nsum(is.na(customer_churn))\n\n\n[1] 45\n\n\nTampilkan / Sembunyikan Kode\n# Duplikasi ID pelanggan\nsum(duplicated(customer_churn$customer_id))\n\n\n[1] 0\n\n\nTampilkan / Sembunyikan Kode\n# Statistik deskriptif\nsummary(customer_churn)\n\n\n    customer_id    signup_date                        region    \n Length   :3000   Min.   :2023-01-01   Bali-Nusa Tenggara: 306  \n N.unique :3000   1st Qu.:2023-10-09   Jawa              :1262  \n N.blank  :   0   Median :2024-06-27   Kalimantan        : 332  \n Min.nchar:  10   Mean   :2024-07-02   Sulawesi          : 430  \n Max.nchar:  10   3rd Qu.:2025-04-03   Sumatera          : 670  \n                  Max.   :2025-12-30                            \n                                                                \n     segment       contract_type          payment_method\n Korporat: 321   Bulanan  :1541   E-Wallet       :862   \n Retail  :1836   Dua Tahun: 536   Kartu Kredit   :653   \n UMKM    : 843   Tahunan  : 923   Transfer Bank  :901   \n                                  Virtual Account:584   \n                                                        \n                                                        \n                                                        \n         internet_service tenure_months   monthly_charges   total_charges     \n DSL             : 926    Min.   : 1.00   Min.   : 160000   Min.   :  214000  \n Fiber           :1431    1st Qu.:13.00   1st Qu.: 304000   1st Qu.: 5127000  \n Mobile Broadband: 643    Median :25.00   Median : 393000   Median : 9231000  \n                          Mean   :26.52   Mean   : 423952   Mean   :11296852  \n                          3rd Qu.:35.00   3rd Qu.: 497250   3rd Qu.:15236500  \n                          Max.   :71.00   Max.   :1353000   Max.   :59536000  \n                                                            NAs    :45        \n num_complaints  support_calls            churn     \n Min.   :0.000   Min.   : 0.000   Tidak Churn:1952  \n 1st Qu.:0.000   1st Qu.: 1.000   Churn      :1048  \n Median :1.000   Median : 2.000                     \n Mean   :1.128   Mean   : 2.429                     \n 3rd Qu.:2.000   3rd Qu.: 3.000                     \n Max.   :7.000   Max.   :13.000                     \n                                                    \n\n\n\n\n\nMembuat variabel numerik churn untuk kebutuhan perhitungan tingkat churn dan korelasi.\n\n\nTampilkan / Sembunyikan Kode\ncustomer_churn &lt;- customer_churn %&gt;%\n  mutate(\n    churn_num = as.integer(churn == \"Churn\")\n  )",
+    "crumbs": [
+      "**BAB**",
+      "1. Bab 1"
+    ]
+  },
+  {
+    "objectID": "chapter1.html#sub-content-1",
+    "href": "chapter1.html#sub-content-1",
+    "title": "ENTER YOUR CONTENT",
+    "section": "",
+    "text": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer nec odio. Praesent libero. Sed cursus ante dapibus diam. Sed nisi. Nulla quis sem at nibh elementum imperdiet.",
+    "crumbs": [
+      "**BAB**",
+      "1. Bab 1"
+    ]
+  },
+  {
+    "objectID": "chapter1.html#sub-content-2",
+    "href": "chapter1.html#sub-content-2",
+    "title": "ENTER YOUR CONTENT",
+    "section": "",
+    "text": "Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.",
+    "crumbs": [
+      "**BAB**",
+      "1. Bab 1"
+    ]
+  },
+  {
+    "objectID": "chapter1.html#sub-content-3",
+    "href": "chapter1.html#sub-content-3",
+    "title": "ENTER YOUR CONTENT",
+    "section": "",
+    "text": "Curabitur sodales ligula in libero. Sed dignissim lacinia nunc. Curabitur tortor. Pellentesque nibh. Aenean quam. In scelerisque sem at dolor.",
+    "crumbs": [
+      "**BAB**",
+      "1. Bab 1"
+    ]
+  },
+  {
+    "objectID": "chapter1.html#sub-content-1-1",
+    "href": "chapter1.html#sub-content-1-1",
+    "title": "ENTER YOUR CONTENT",
+    "section": "2.1 Sub Content 1",
+    "text": "2.1 Sub Content 1\n\n\n\n\n\n\nNoteNote\n\n\n\nLorem ipsum dolor sit amet, consectetur adipiscing elit. Integer nec odio. Praesent libero. Sed cursus ante dapibus diam. Sed nisi. Nulla quis sem at nibh elementum imperdiet.",
+    "crumbs": [
+      "**BAB**",
+      "1. Bab 1"
+    ]
+  },
+  {
+    "objectID": "chapter1.html#sub-content-2-1",
+    "href": "chapter1.html#sub-content-2-1",
+    "title": "ENTER YOUR CONTENT",
+    "section": "2.2 Sub Content 2",
+    "text": "2.2 Sub Content 2\n\n\n\n\n\n\nTipTip\n\n\n\nLorem ipsum dolor sit amet, consectetur adipiscing elit. Integer nec odio. Praesent libero. Sed cursus ante dapibus diam. Sed nisi. Nulla quis sem at nibh elementum imperdiet.",
+    "crumbs": [
+      "**BAB**",
+      "1. Bab 1"
+    ]
+  },
+  {
+    "objectID": "chapter1.html#sub-content-3-1",
+    "href": "chapter1.html#sub-content-3-1",
+    "title": "ENTER YOUR CONTENT",
+    "section": "2.3 Sub Content 3",
+    "text": "2.3 Sub Content 3\n\n\n\n\n\n\nWarningWarning\n\n\n\nLorem ipsum dolor sit amet, consectetur adipiscing elit. Integer nec odio. Praesent libero. Sed cursus ante dapibus diam. Sed nisi. Nulla quis sem at nibh elementum imperdiet.",
+    "crumbs": [
+      "**BAB**",
+      "1. Bab 1"
+    ]
+  },
+  {
+    "objectID": "chapter1.html#sub-content-1-2",
+    "href": "chapter1.html#sub-content-1-2",
+    "title": "ENTER YOUR CONTENT",
+    "section": "3.1 Sub Content 1",
+    "text": "3.1 Sub Content 1\n\nLorem ipsum dolor sit amet, consectetur adipiscing elit. Integer nec odio. Praesent libero. Sed cursus ante dapibus diam. Sed nisi. Nulla quis sem at nibh elementum imperdiet.",
+    "crumbs": [
+      "**BAB**",
+      "1. Bab 1"
+    ]
+  },
+  {
+    "objectID": "chapter1.html#sub-content-2-2",
+    "href": "chapter1.html#sub-content-2-2",
+    "title": "ENTER YOUR CONTENT",
+    "section": "3.2 Sub Content 2",
+    "text": "3.2 Sub Content 2\nLorem ipsum dolor sit amet, consectetur adipiscing elit. Integer nec odio. Praesent libero. Sed cursus ante dapibus diam. Sed nisi. Nulla quis sem at nibh elementum imperdiet.",
+    "crumbs": [
+      "**BAB**",
+      "1. Bab 1"
+    ]
+  },
+  {
+    "objectID": "chapter1.html#sub-content-3-2",
+    "href": "chapter1.html#sub-content-3-2",
+    "title": "ENTER YOUR CONTENT",
+    "section": "3.3 Sub Content 3",
+    "text": "3.3 Sub Content 3\nLorem ipsum dolor sit amet, consectetur adipiscing elit. Integer nec odio. Praesent libero. Sed cursus ante dapibus diam. Sed nisi. Nulla quis sem at nibh elementum imperdiet.",
+    "crumbs": [
+      "**BAB**",
+      "1. Bab 1"
+    ]
+  },
+  {
+    "objectID": "chapter1.html#sub-content-1-3",
+    "href": "chapter1.html#sub-content-1-3",
+    "title": "ENTER YOUR CONTENT",
+    "section": "4.1 Sub Content 1",
+    "text": "4.1 Sub Content 1",
+    "crumbs": [
+      "**BAB**",
+      "1. Bab 1"
+    ]
+  },
+  {
+    "objectID": "chapter1.html#sub-content-2-3",
+    "href": "chapter1.html#sub-content-2-3",
+    "title": "ENTER YOUR CONTENT",
+    "section": "4.2 Sub Content 2",
+    "text": "4.2 Sub Content 2",
+    "crumbs": [
+      "**BAB**",
+      "1. Bab 1"
+    ]
+  },
+  {
+    "objectID": "chapter1.html#sub-content-3-3",
+    "href": "chapter1.html#sub-content-3-3",
+    "title": "ENTER YOUR CONTENT",
+    "section": "4.3 Sub Content 3",
+    "text": "4.3 Sub Content 3",
+    "crumbs": [
+      "**BAB**",
+      "1. Bab 1"
+    ]
+  },
+  {
+    "objectID": "chapter1.html#sub-content-1-4",
+    "href": "chapter1.html#sub-content-1-4",
+    "title": "ENTER YOUR CONTENT",
+    "section": "5.1 Sub Content 1",
+    "text": "5.1 Sub Content 1",
+    "crumbs": [
+      "**BAB**",
+      "1. Bab 1"
+    ]
+  },
+  {
+    "objectID": "chapter1.html#sub-content-2-4",
+    "href": "chapter1.html#sub-content-2-4",
+    "title": "ENTER YOUR CONTENT",
+    "section": "5.2 Sub Content 2",
+    "text": "5.2 Sub Content 2",
+    "crumbs": [
+      "**BAB**",
+      "1. Bab 1"
+    ]
+  },
+  {
+    "objectID": "chapter1.html#sub-content-3-4",
+    "href": "chapter1.html#sub-content-3-4",
+    "title": "ENTER YOUR CONTENT",
+    "section": "5.3 Sub Content 3",
+    "text": "5.3 Sub Content 3",
+    "crumbs": [
+      "**BAB**",
+      "1. Bab 1"
+    ]
+  },
+  {
+    "objectID": "chapter1.html#sub-content-1-5",
+    "href": "chapter1.html#sub-content-1-5",
+    "title": "ENTER YOUR CONTENT",
+    "section": "6.1 Sub Content 1",
+    "text": "6.1 Sub Content 1",
+    "crumbs": [
+      "**BAB**",
+      "1. Bab 1"
+    ]
+  },
+  {
+    "objectID": "chapter1.html#sub-content-2-5",
+    "href": "chapter1.html#sub-content-2-5",
+    "title": "ENTER YOUR CONTENT",
+    "section": "6.2 Sub Content 2",
+    "text": "6.2 Sub Content 2",
+    "crumbs": [
+      "**BAB**",
+      "1. Bab 1"
+    ]
+  },
+  {
+    "objectID": "chapter1.html#sub-content-3-5",
+    "href": "chapter1.html#sub-content-3-5",
+    "title": "ENTER YOUR CONTENT",
+    "section": "6.3 Sub Content 3",
+    "text": "6.3 Sub Content 3",
+    "crumbs": [
+      "**BAB**",
+      "1. Bab 1"
+    ]
+  },
+  {
+    "objectID": "chapter3.html",
+    "href": "chapter3.html",
+    "title": "ENTER YOUR CONTENT",
+    "section": "",
+    "text": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.\n\n\nLorem ipsum dolor sit amet, consectetur adipiscing elit. Integer nec odio. Praesent libero. Sed cursus ante dapibus diam. Sed nisi. Nulla quis sem at nibh elementum imperdiet.\n\n\n\nDuis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.\n\n\n\nCurabitur sodales ligula in libero. Sed dignissim lacinia nunc. Curabitur tortor. Pellentesque nibh. Aenean quam. In scelerisque sem at dolor.",
+    "crumbs": [
+      "**BAB**",
+      "3. Bab 3"
+    ]
+  },
+  {
+    "objectID": "chapter3.html#sub-content-1",
+    "href": "chapter3.html#sub-content-1",
+    "title": "ENTER YOUR CONTENT",
+    "section": "",
+    "text": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer nec odio. Praesent libero. Sed cursus ante dapibus diam. Sed nisi. Nulla quis sem at nibh elementum imperdiet.",
+    "crumbs": [
+      "**BAB**",
+      "3. Bab 3"
+    ]
+  },
+  {
+    "objectID": "chapter3.html#sub-content-2",
+    "href": "chapter3.html#sub-content-2",
+    "title": "ENTER YOUR CONTENT",
+    "section": "",
+    "text": "Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.",
+    "crumbs": [
+      "**BAB**",
+      "3. Bab 3"
+    ]
+  },
+  {
+    "objectID": "chapter3.html#sub-content-3",
+    "href": "chapter3.html#sub-content-3",
+    "title": "ENTER YOUR CONTENT",
+    "section": "",
+    "text": "Curabitur sodales ligula in libero. Sed dignissim lacinia nunc. Curabitur tortor. Pellentesque nibh. Aenean quam. In scelerisque sem at dolor.",
+    "crumbs": [
+      "**BAB**",
+      "3. Bab 3"
+    ]
+  },
+  {
+    "objectID": "chapter3.html#sub-content-1-1",
+    "href": "chapter3.html#sub-content-1-1",
+    "title": "ENTER YOUR CONTENT",
+    "section": "2.1 Sub Content 1",
+    "text": "2.1 Sub Content 1\n\n\n\n\n\n\nNoteNote\n\n\n\nLorem ipsum dolor sit amet, consectetur adipiscing elit. Integer nec odio. Praesent libero. Sed cursus ante dapibus diam. Sed nisi. Nulla quis sem at nibh elementum imperdiet.",
+    "crumbs": [
+      "**BAB**",
+      "3. Bab 3"
+    ]
+  },
+  {
+    "objectID": "chapter3.html#sub-content-2-1",
+    "href": "chapter3.html#sub-content-2-1",
+    "title": "ENTER YOUR CONTENT",
+    "section": "2.2 Sub Content 2",
+    "text": "2.2 Sub Content 2\n\n\n\n\n\n\nTipTip\n\n\n\nLorem ipsum dolor sit amet, consectetur adipiscing elit. Integer nec odio. Praesent libero. Sed cursus ante dapibus diam. Sed nisi. Nulla quis sem at nibh elementum imperdiet.",
+    "crumbs": [
+      "**BAB**",
+      "3. Bab 3"
+    ]
+  },
+  {
+    "objectID": "chapter3.html#sub-content-3-1",
+    "href": "chapter3.html#sub-content-3-1",
+    "title": "ENTER YOUR CONTENT",
+    "section": "2.3 Sub Content 3",
+    "text": "2.3 Sub Content 3\n\n\n\n\n\n\nWarningWarning\n\n\n\nLorem ipsum dolor sit amet, consectetur adipiscing elit. Integer nec odio. Praesent libero. Sed cursus ante dapibus diam. Sed nisi. Nulla quis sem at nibh elementum imperdiet.",
+    "crumbs": [
+      "**BAB**",
+      "3. Bab 3"
+    ]
+  },
+  {
+    "objectID": "chapter3.html#sub-content-1-2",
+    "href": "chapter3.html#sub-content-1-2",
+    "title": "ENTER YOUR CONTENT",
+    "section": "3.1 Sub Content 1",
+    "text": "3.1 Sub Content 1\n\nLorem ipsum dolor sit amet, consectetur adipiscing elit. Integer nec odio. Praesent libero. Sed cursus ante dapibus diam. Sed nisi. Nulla quis sem at nibh elementum imperdiet.",
+    "crumbs": [
+      "**BAB**",
+      "3. Bab 3"
+    ]
+  },
+  {
+    "objectID": "chapter3.html#sub-content-2-2",
+    "href": "chapter3.html#sub-content-2-2",
+    "title": "ENTER YOUR CONTENT",
+    "section": "3.2 Sub Content 2",
+    "text": "3.2 Sub Content 2\nLorem ipsum dolor sit amet, consectetur adipiscing elit. Integer nec odio. Praesent libero. Sed cursus ante dapibus diam. Sed nisi. Nulla quis sem at nibh elementum imperdiet.",
+    "crumbs": [
+      "**BAB**",
+      "3. Bab 3"
+    ]
+  },
+  {
+    "objectID": "chapter3.html#sub-content-3-2",
+    "href": "chapter3.html#sub-content-3-2",
+    "title": "ENTER YOUR CONTENT",
+    "section": "3.3 Sub Content 3",
+    "text": "3.3 Sub Content 3\nLorem ipsum dolor sit amet, consectetur adipiscing elit. Integer nec odio. Praesent libero. Sed cursus ante dapibus diam. Sed nisi. Nulla quis sem at nibh elementum imperdiet.",
+    "crumbs": [
+      "**BAB**",
+      "3. Bab 3"
+    ]
+  },
+  {
+    "objectID": "chapter3.html#sub-content-1-3",
+    "href": "chapter3.html#sub-content-1-3",
+    "title": "ENTER YOUR CONTENT",
+    "section": "4.1 Sub Content 1",
+    "text": "4.1 Sub Content 1",
+    "crumbs": [
+      "**BAB**",
+      "3. Bab 3"
+    ]
+  },
+  {
+    "objectID": "chapter3.html#sub-content-2-3",
+    "href": "chapter3.html#sub-content-2-3",
+    "title": "ENTER YOUR CONTENT",
+    "section": "4.2 Sub Content 2",
+    "text": "4.2 Sub Content 2",
+    "crumbs": [
+      "**BAB**",
+      "3. Bab 3"
+    ]
+  },
+  {
+    "objectID": "chapter3.html#sub-content-3-3",
+    "href": "chapter3.html#sub-content-3-3",
+    "title": "ENTER YOUR CONTENT",
+    "section": "4.3 Sub Content 3",
+    "text": "4.3 Sub Content 3",
+    "crumbs": [
+      "**BAB**",
+      "3. Bab 3"
+    ]
+  },
+  {
+    "objectID": "chapter3.html#sub-content-1-4",
+    "href": "chapter3.html#sub-content-1-4",
+    "title": "ENTER YOUR CONTENT",
+    "section": "5.1 Sub Content 1",
+    "text": "5.1 Sub Content 1",
+    "crumbs": [
+      "**BAB**",
+      "3. Bab 3"
+    ]
+  },
+  {
+    "objectID": "chapter3.html#sub-content-2-4",
+    "href": "chapter3.html#sub-content-2-4",
+    "title": "ENTER YOUR CONTENT",
+    "section": "5.2 Sub Content 2",
+    "text": "5.2 Sub Content 2",
+    "crumbs": [
+      "**BAB**",
+      "3. Bab 3"
+    ]
+  },
+  {
+    "objectID": "chapter3.html#sub-content-3-4",
+    "href": "chapter3.html#sub-content-3-4",
+    "title": "ENTER YOUR CONTENT",
+    "section": "5.3 Sub Content 3",
+    "text": "5.3 Sub Content 3",
+    "crumbs": [
+      "**BAB**",
+      "3. Bab 3"
+    ]
+  },
+  {
+    "objectID": "chapter3.html#sub-content-1-5",
+    "href": "chapter3.html#sub-content-1-5",
+    "title": "ENTER YOUR CONTENT",
+    "section": "6.1 Sub Content 1",
+    "text": "6.1 Sub Content 1",
+    "crumbs": [
+      "**BAB**",
+      "3. Bab 3"
+    ]
+  },
+  {
+    "objectID": "chapter3.html#sub-content-2-5",
+    "href": "chapter3.html#sub-content-2-5",
+    "title": "ENTER YOUR CONTENT",
+    "section": "6.2 Sub Content 2",
+    "text": "6.2 Sub Content 2",
+    "crumbs": [
+      "**BAB**",
+      "3. Bab 3"
+    ]
+  },
+  {
+    "objectID": "chapter3.html#sub-content-3-5",
+    "href": "chapter3.html#sub-content-3-5",
+    "title": "ENTER YOUR CONTENT",
+    "section": "6.3 Sub Content 3",
+    "text": "6.3 Sub Content 3",
+    "crumbs": [
+      "**BAB**",
+      "3. Bab 3"
+    ]
+  },
+  {
+    "objectID": "chapter5.html",
+    "href": "chapter5.html",
+    "title": "ENTER YOUR CONTENT",
+    "section": "",
+    "text": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.\n\n\nLorem ipsum dolor sit amet, consectetur adipiscing elit. Integer nec odio. Praesent libero. Sed cursus ante dapibus diam. Sed nisi. Nulla quis sem at nibh elementum imperdiet.\n\n\n\nDuis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.\n\n\n\nCurabitur sodales ligula in libero. Sed dignissim lacinia nunc. Curabitur tortor. Pellentesque nibh. Aenean quam. In scelerisque sem at dolor.",
+    "crumbs": [
+      "**BAB**",
+      "5. Bab 5"
+    ]
+  },
+  {
+    "objectID": "chapter5.html#sub-content-1",
+    "href": "chapter5.html#sub-content-1",
+    "title": "ENTER YOUR CONTENT",
+    "section": "",
+    "text": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer nec odio. Praesent libero. Sed cursus ante dapibus diam. Sed nisi. Nulla quis sem at nibh elementum imperdiet.",
+    "crumbs": [
+      "**BAB**",
+      "5. Bab 5"
+    ]
+  },
+  {
+    "objectID": "chapter5.html#sub-content-2",
+    "href": "chapter5.html#sub-content-2",
+    "title": "ENTER YOUR CONTENT",
+    "section": "",
+    "text": "Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.",
+    "crumbs": [
+      "**BAB**",
+      "5. Bab 5"
+    ]
+  },
+  {
+    "objectID": "chapter5.html#sub-content-3",
+    "href": "chapter5.html#sub-content-3",
+    "title": "ENTER YOUR CONTENT",
+    "section": "",
+    "text": "Curabitur sodales ligula in libero. Sed dignissim lacinia nunc. Curabitur tortor. Pellentesque nibh. Aenean quam. In scelerisque sem at dolor.",
+    "crumbs": [
+      "**BAB**",
+      "5. Bab 5"
+    ]
+  },
+  {
+    "objectID": "chapter5.html#sub-content-1-1",
+    "href": "chapter5.html#sub-content-1-1",
+    "title": "ENTER YOUR CONTENT",
+    "section": "2.1 Sub Content 1",
+    "text": "2.1 Sub Content 1\n\n\n\n\n\n\nNoteNote\n\n\n\nLorem ipsum dolor sit amet, consectetur adipiscing elit. Integer nec odio. Praesent libero. Sed cursus ante dapibus diam. Sed nisi. Nulla quis sem at nibh elementum imperdiet.",
+    "crumbs": [
+      "**BAB**",
+      "5. Bab 5"
+    ]
+  },
+  {
+    "objectID": "chapter5.html#sub-content-2-1",
+    "href": "chapter5.html#sub-content-2-1",
+    "title": "ENTER YOUR CONTENT",
+    "section": "2.2 Sub Content 2",
+    "text": "2.2 Sub Content 2\n\n\n\n\n\n\nTipTip\n\n\n\nLorem ipsum dolor sit amet, consectetur adipiscing elit. Integer nec odio. Praesent libero. Sed cursus ante dapibus diam. Sed nisi. Nulla quis sem at nibh elementum imperdiet.",
+    "crumbs": [
+      "**BAB**",
+      "5. Bab 5"
+    ]
+  },
+  {
+    "objectID": "chapter5.html#sub-content-3-1",
+    "href": "chapter5.html#sub-content-3-1",
+    "title": "ENTER YOUR CONTENT",
+    "section": "2.3 Sub Content 3",
+    "text": "2.3 Sub Content 3\n\n\n\n\n\n\nWarningWarning\n\n\n\nLorem ipsum dolor sit amet, consectetur adipiscing elit. Integer nec odio. Praesent libero. Sed cursus ante dapibus diam. Sed nisi. Nulla quis sem at nibh elementum imperdiet.",
+    "crumbs": [
+      "**BAB**",
+      "5. Bab 5"
+    ]
+  },
+  {
+    "objectID": "chapter5.html#sub-content-1-2",
+    "href": "chapter5.html#sub-content-1-2",
+    "title": "ENTER YOUR CONTENT",
+    "section": "3.1 Sub Content 1",
+    "text": "3.1 Sub Content 1\n\nLorem ipsum dolor sit amet, consectetur adipiscing elit. Integer nec odio. Praesent libero. Sed cursus ante dapibus diam. Sed nisi. Nulla quis sem at nibh elementum imperdiet.",
+    "crumbs": [
+      "**BAB**",
+      "5. Bab 5"
+    ]
+  },
+  {
+    "objectID": "chapter5.html#sub-content-2-2",
+    "href": "chapter5.html#sub-content-2-2",
+    "title": "ENTER YOUR CONTENT",
+    "section": "3.2 Sub Content 2",
+    "text": "3.2 Sub Content 2\nLorem ipsum dolor sit amet, consectetur adipiscing elit. Integer nec odio. Praesent libero. Sed cursus ante dapibus diam. Sed nisi. Nulla quis sem at nibh elementum imperdiet.",
+    "crumbs": [
+      "**BAB**",
+      "5. Bab 5"
+    ]
+  },
+  {
+    "objectID": "chapter5.html#sub-content-3-2",
+    "href": "chapter5.html#sub-content-3-2",
+    "title": "ENTER YOUR CONTENT",
+    "section": "3.3 Sub Content 3",
+    "text": "3.3 Sub Content 3\nLorem ipsum dolor sit amet, consectetur adipiscing elit. Integer nec odio. Praesent libero. Sed cursus ante dapibus diam. Sed nisi. Nulla quis sem at nibh elementum imperdiet.",
+    "crumbs": [
+      "**BAB**",
+      "5. Bab 5"
+    ]
+  },
+  {
+    "objectID": "chapter5.html#sub-content-1-3",
+    "href": "chapter5.html#sub-content-1-3",
+    "title": "ENTER YOUR CONTENT",
+    "section": "4.1 Sub Content 1",
+    "text": "4.1 Sub Content 1",
+    "crumbs": [
+      "**BAB**",
+      "5. Bab 5"
+    ]
+  },
+  {
+    "objectID": "chapter5.html#sub-content-2-3",
+    "href": "chapter5.html#sub-content-2-3",
+    "title": "ENTER YOUR CONTENT",
+    "section": "4.2 Sub Content 2",
+    "text": "4.2 Sub Content 2",
+    "crumbs": [
+      "**BAB**",
+      "5. Bab 5"
+    ]
+  },
+  {
+    "objectID": "chapter5.html#sub-content-3-3",
+    "href": "chapter5.html#sub-content-3-3",
+    "title": "ENTER YOUR CONTENT",
+    "section": "4.3 Sub Content 3",
+    "text": "4.3 Sub Content 3",
+    "crumbs": [
+      "**BAB**",
+      "5. Bab 5"
+    ]
+  },
+  {
+    "objectID": "chapter5.html#sub-content-1-4",
+    "href": "chapter5.html#sub-content-1-4",
+    "title": "ENTER YOUR CONTENT",
+    "section": "5.1 Sub Content 1",
+    "text": "5.1 Sub Content 1",
+    "crumbs": [
+      "**BAB**",
+      "5. Bab 5"
+    ]
+  },
+  {
+    "objectID": "chapter5.html#sub-content-2-4",
+    "href": "chapter5.html#sub-content-2-4",
+    "title": "ENTER YOUR CONTENT",
+    "section": "5.2 Sub Content 2",
+    "text": "5.2 Sub Content 2",
+    "crumbs": [
+      "**BAB**",
+      "5. Bab 5"
+    ]
+  },
+  {
+    "objectID": "chapter5.html#sub-content-3-4",
+    "href": "chapter5.html#sub-content-3-4",
+    "title": "ENTER YOUR CONTENT",
+    "section": "5.3 Sub Content 3",
+    "text": "5.3 Sub Content 3",
+    "crumbs": [
+      "**BAB**",
+      "5. Bab 5"
+    ]
+  },
+  {
+    "objectID": "chapter5.html#sub-content-1-5",
+    "href": "chapter5.html#sub-content-1-5",
+    "title": "ENTER YOUR CONTENT",
+    "section": "6.1 Sub Content 1",
+    "text": "6.1 Sub Content 1",
+    "crumbs": [
+      "**BAB**",
+      "5. Bab 5"
+    ]
+  },
+  {
+    "objectID": "chapter5.html#sub-content-2-5",
+    "href": "chapter5.html#sub-content-2-5",
+    "title": "ENTER YOUR CONTENT",
+    "section": "6.2 Sub Content 2",
+    "text": "6.2 Sub Content 2",
+    "crumbs": [
+      "**BAB**",
+      "5. Bab 5"
+    ]
+  },
+  {
+    "objectID": "chapter5.html#sub-content-3-5",
+    "href": "chapter5.html#sub-content-3-5",
+    "title": "ENTER YOUR CONTENT",
+    "section": "6.3 Sub Content 3",
+    "text": "6.3 Sub Content 3",
+    "crumbs": [
+      "**BAB**",
+      "5. Bab 5"
+    ]
+  },
+  {
+    "objectID": "chapter1.html#import-library-dan-dataset",
+    "href": "chapter1.html#import-library-dan-dataset",
+    "title": "Exploratory Data Analysis - Customer Churn",
+    "section": "",
+    "text": "Pada tahap awal, dilakukan import library yang dibutuhkan untuk proses pengolahan data dan visualisasi. Dataset customer churn diperoleh dari repositori GitHub.\n\n\nTampilkan / Sembunyikan Kode\nlibrary(dplyr)\nlibrary(ggplot2)\nlibrary(tidyr)\nlibrary(scales)\n\n\n\n\nTampilkan / Sembunyikan Kode\n# Import data dari GitHub\ncustomer_churn &lt;- read.csv(\n  \"https://raw.githubusercontent.com/Muhammadrizkybagas/bookdown-template/refs/heads/main/data/customer_churn.csv\"\n)\n\n# Melihat data\nhead(customer_churn)\n\n\n  customer_id signup_date             region segment contract_type\n1  CUST-00001  2024-12-02           Sulawesi    UMKM       Bulanan\n2  CUST-00002  2024-05-29           Sumatera  Retail       Bulanan\n3  CUST-00003  2024-12-05           Sulawesi  Retail       Tahunan\n4  CUST-00004  2023-07-21         Kalimantan    UMKM       Bulanan\n5  CUST-00005  2025-05-03               Jawa  Retail       Bulanan\n6  CUST-00006  2023-10-13 Bali-Nusa Tenggara    UMKM       Bulanan\n   payment_method internet_service tenure_months monthly_charges total_charges\n1 Virtual Account              DSL             9          373000       3231000\n2   Transfer Bank            Fiber            13          345000       4419000\n3    Kartu Kredit            Fiber            44          471000            NA\n4   Transfer Bank Mobile Broadband             4          555000       2296000\n5   Transfer Bank            Fiber             4          340000            NA\n6        E-Wallet            Fiber            11          597000       6351000\n  num_complaints support_calls churn\n1              3             6     1\n2              4             5     1\n3              2             3     0\n4              0             2     1\n5              1             1     0\n6              0             0     0",
+    "crumbs": [
+      "**BAB**",
+      "1. Bab 1"
+    ]
+  },
+  {
+    "objectID": "chapter1.html#data-cleaning",
+    "href": "chapter1.html#data-cleaning",
+    "title": "Exploratory Data Analysis - Customer Churn",
+    "section": "",
+    "text": "Proses cleaning dilakukan untuk memastikan data memiliki format yang sesuai sebelum dianalisis.\n\n\nTampilkan / Sembunyikan Kode\ncustomer_churn &lt;- customer_churn %&gt;%\n  mutate(\n    across(where(is.character), trimws),\n    signup_date = as.Date(signup_date),\n    region = as.factor(region),\n    segment = as.factor(segment),\n    contract_type = as.factor(contract_type),\n    payment_method = as.factor(payment_method),\n    internet_service = as.factor(internet_service),\n    churn = factor(churn, levels = c(0, 1),\n                   labels = c(\"Tidak Churn\", \"Churn\"))\n  ) %&gt;%\n  distinct(customer_id, .keep_all = TRUE)",
+    "crumbs": [
+      "**BAB**",
+      "1. Bab 1"
+    ]
+  },
+  {
+    "objectID": "chapter1.html#pemeriksaan-data",
+    "href": "chapter1.html#pemeriksaan-data",
+    "title": "Exploratory Data Analysis - Customer Churn",
+    "section": "",
+    "text": "Tampilkan / Sembunyikan Kode\n# Struktur data\nstr(customer_churn)\n\n\n'data.frame':   3000 obs. of  13 variables:\n $ customer_id     : chr  \"CUST-00001\" \"CUST-00002\" \"CUST-00003\" \"CUST-00004\" ...\n $ signup_date     : Date, format: \"2024-12-02\" \"2024-05-29\" ...\n $ region          : Factor w/ 5 levels \"Bali-Nusa Tenggara\",..: 4 5 4 3 2 1 4 4 2 5 ...\n $ segment         : Factor w/ 3 levels \"Korporat\",\"Retail\",..: 3 2 2 3 2 3 2 2 2 3 ...\n $ contract_type   : Factor w/ 3 levels \"Bulanan\",\"Dua Tahun\",..: 1 1 3 1 1 1 3 2 3 2 ...\n $ payment_method  : Factor w/ 4 levels \"E-Wallet\",\"Kartu Kredit\",..: 4 3 2 3 3 1 3 1 1 3 ...\n $ internet_service: Factor w/ 3 levels \"DSL\",\"Fiber\",..: 1 2 2 3 2 2 2 3 1 2 ...\n $ tenure_months   : int  9 13 44 4 4 11 20 33 34 63 ...\n $ monthly_charges : num  373000 345000 471000 555000 340000 597000 371000 435000 308000 591000 ...\n $ total_charges   : num  3231000 4419000 NA 2296000 NA ...\n $ num_complaints  : int  3 4 2 0 1 0 1 2 1 1 ...\n $ support_calls   : int  6 5 3 2 1 0 3 6 1 1 ...\n $ churn           : Factor w/ 2 levels \"Tidak Churn\",..: 2 2 1 2 1 1 1 1 1 1 ...\n\n\nTampilkan / Sembunyikan Kode\n# Dimensi data\ndim(customer_churn)\n\n\n[1] 3000   13\n\n\nTampilkan / Sembunyikan Kode\n# Missing value setiap kolom\ncolSums(is.na(customer_churn))\n\n\n     customer_id      signup_date           region          segment \n               0                0                0                0 \n   contract_type   payment_method internet_service    tenure_months \n               0                0                0                0 \n monthly_charges    total_charges   num_complaints    support_calls \n               0               45                0                0 \n           churn \n               0 \n\n\nTampilkan / Sembunyikan Kode\n# Total missing value\nsum(is.na(customer_churn))\n\n\n[1] 45\n\n\nTampilkan / Sembunyikan Kode\n# Duplikasi ID pelanggan\nsum(duplicated(customer_churn$customer_id))\n\n\n[1] 0\n\n\nTampilkan / Sembunyikan Kode\n# Statistik deskriptif\nsummary(customer_churn)\n\n\n    customer_id    signup_date                        region    \n Length   :3000   Min.   :2023-01-01   Bali-Nusa Tenggara: 306  \n N.unique :3000   1st Qu.:2023-10-09   Jawa              :1262  \n N.blank  :   0   Median :2024-06-27   Kalimantan        : 332  \n Min.nchar:  10   Mean   :2024-07-02   Sulawesi          : 430  \n Max.nchar:  10   3rd Qu.:2025-04-03   Sumatera          : 670  \n                  Max.   :2025-12-30                            \n                                                                \n     segment       contract_type          payment_method\n Korporat: 321   Bulanan  :1541   E-Wallet       :862   \n Retail  :1836   Dua Tahun: 536   Kartu Kredit   :653   \n UMKM    : 843   Tahunan  : 923   Transfer Bank  :901   \n                                  Virtual Account:584   \n                                                        \n                                                        \n                                                        \n         internet_service tenure_months   monthly_charges   total_charges     \n DSL             : 926    Min.   : 1.00   Min.   : 160000   Min.   :  214000  \n Fiber           :1431    1st Qu.:13.00   1st Qu.: 304000   1st Qu.: 5127000  \n Mobile Broadband: 643    Median :25.00   Median : 393000   Median : 9231000  \n                          Mean   :26.52   Mean   : 423952   Mean   :11296852  \n                          3rd Qu.:35.00   3rd Qu.: 497250   3rd Qu.:15236500  \n                          Max.   :71.00   Max.   :1353000   Max.   :59536000  \n                                                            NAs    :45        \n num_complaints  support_calls            churn     \n Min.   :0.000   Min.   : 0.000   Tidak Churn:1952  \n 1st Qu.:0.000   1st Qu.: 1.000   Churn      :1048  \n Median :1.000   Median : 2.000                     \n Mean   :1.128   Mean   : 2.429                     \n 3rd Qu.:2.000   3rd Qu.: 3.000                     \n Max.   :7.000   Max.   :13.000",
+    "crumbs": [
+      "**BAB**",
+      "1. Bab 1"
+    ]
+  },
+  {
+    "objectID": "chapter1.html#persiapan-variabel-analisis",
+    "href": "chapter1.html#persiapan-variabel-analisis",
+    "title": "Exploratory Data Analysis - Customer Churn",
+    "section": "",
+    "text": "Membuat variabel numerik churn untuk kebutuhan perhitungan tingkat churn dan korelasi.\n\n\nTampilkan / Sembunyikan Kode\ncustomer_churn &lt;- customer_churn %&gt;%\n  mutate(\n    churn_num = as.integer(churn == \"Churn\")\n  )",
+    "crumbs": [
+      "**BAB**",
+      "1. Bab 1"
+    ]
+  },
+  {
+    "objectID": "chapter1.html#informasi-dataset",
+    "href": "chapter1.html#informasi-dataset",
+    "title": "Exploratory Data Analysis - Customer Churn",
+    "section": "2.1 Informasi Dataset",
+    "text": "2.1 Informasi Dataset\n\n\nTampilkan / Sembunyikan Kode\ncat(\"Jumlah Pelanggan:\", nrow(customer_churn), \"\\n\")\n\n\nJumlah Pelanggan: 3000 \n\n\nTampilkan / Sembunyikan Kode\ncat(\"Jumlah Variabel:\", ncol(customer_churn), \"\\n\")\n\n\nJumlah Variabel: 14 \n\n\nTampilkan / Sembunyikan Kode\ncat(\"Tanggal Pendaftaran Terawal:\", min(customer_churn$signup_date), \"\\n\")\n\n\nTanggal Pendaftaran Terawal: 19358 \n\n\nTampilkan / Sembunyikan Kode\ncat(\"Tanggal Pendaftaran Terakhir:\", max(customer_churn$signup_date), \"\\n\")\n\n\nTanggal Pendaftaran Terakhir: 20452 \n\n\nTampilkan / Sembunyikan Kode\ncat(\"Total Missing Value:\", sum(is.na(customer_churn)), \"\\n\")\n\n\nTotal Missing Value: 45",
+    "crumbs": [
+      "**BAB**",
+      "1. Bab 1"
+    ]
+  },
+  {
+    "objectID": "chapter1.html#key-performance-indicators-kpi",
+    "href": "chapter1.html#key-performance-indicators-kpi",
+    "title": "Exploratory Data Analysis - Customer Churn",
+    "section": "2.2 Key Performance Indicators (KPI)",
+    "text": "2.2 Key Performance Indicators (KPI)\n\n\nTampilkan / Sembunyikan Kode\ntotal_customer &lt;- nrow(customer_churn)\n\ntotal_churn &lt;- sum(customer_churn$churn == \"Churn\")\n\ntotal_stay &lt;- sum(customer_churn$churn == \"Tidak Churn\")\n\nchurn_rate &lt;- total_churn / total_customer\n\nstay_rate &lt;- total_stay / total_customer\n\nkpi &lt;- data.frame(\n  Metric = c(\n    \"Total Customer\",\n    \"Customer Churn\",\n    \"Customer Retained\",\n    \"Churn Rate\",\n    \"Retention Rate\"\n  ),\n  Value = c(\n    total_customer,\n    total_churn,\n    total_stay,\n    percent(churn_rate),\n    percent(stay_rate)\n  )\n)\n\nknitr::kable(kpi, caption = \"Customer Overview\")\n\n\n\nCustomer Overview\n\n\nMetric\nValue\n\n\n\n\nTotal Customer\n3000\n\n\nCustomer Churn\n1048\n\n\nCustomer Retained\n1952\n\n\nChurn Rate\n35%\n\n\nRetention Rate\n65%",
+    "crumbs": [
+      "**BAB**",
+      "1. Bab 1"
+    ]
+  },
+  {
+    "objectID": "chapter1.html#distribusi-status-pelanggan",
+    "href": "chapter1.html#distribusi-status-pelanggan",
+    "title": "Exploratory Data Analysis - Customer Churn",
+    "section": "2.3 Distribusi Status Pelanggan",
+    "text": "2.3 Distribusi Status Pelanggan\nVisualisasi ini digunakan untuk mengetahui perbandingan pelanggan yang masih berlangganan dan pelanggan yang berhenti berlangganan.\n\n\nTampilkan / Sembunyikan Kode\nggplot(customer_churn, aes(x = churn, fill = churn)) +\n  geom_bar(width = 0.65) +\n  geom_text(\n    stat = \"count\",\n    aes(label = after_stat(count)),\n    vjust = -0.5,\n    size = 4\n  ) +\n  scale_fill_manual(\n    values = c(\"Tidak Churn\" = \"#2E86AB\",\n               \"Churn\" = \"#E76F51\")\n  ) +\n  labs(\n    title = \"Distribusi Status Pelanggan\",\n    subtitle = \"Perbandingan pelanggan churn dan tidak churn\",\n    x = \"Status Pelanggan\",\n    y = \"Jumlah Pelanggan\"\n  ) +\n  theme_minimal() +\n  theme(legend.position = \"none\")",
+    "crumbs": [
+      "**BAB**",
+      "1. Bab 1"
+    ]
+  },
+  {
+    "objectID": "chapter1.html#proporsi-status-pelanggan",
+    "href": "chapter1.html#proporsi-status-pelanggan",
+    "title": "Exploratory Data Analysis - Customer Churn",
+    "section": "2.4 Proporsi Status Pelanggan",
+    "text": "2.4 Proporsi Status Pelanggan\n\n\nTampilkan / Sembunyikan Kode\nchurn_distribution &lt;- customer_churn %&gt;%\n  count(churn) %&gt;%\n  mutate(\n    percentage = n / sum(n),\n    label = paste0(\n      churn, \"\\n\",\n      percent(percentage, accuracy = 0.1)\n    )\n  )\n\nggplot(churn_distribution,\n       aes(x = \"\", y = percentage, fill = churn)) +\n  geom_col(width = 1, color = \"white\") +\n  coord_polar(theta = \"y\") +\n  geom_text(\n    aes(label = label),\n    position = position_stack(vjust = 0.5),\n    color = \"white\",\n    size = 4\n  ) +\n  scale_fill_manual(\n    values = c(\"Tidak Churn\" = \"#2E86AB\",\n               \"Churn\" = \"#E76F51\")\n  ) +\n  labs(\n    title = \"Proporsi Pelanggan Churn\",\n    fill = \"Status\"\n  ) +\n  theme_void()",
+    "crumbs": [
+      "**BAB**",
+      "1. Bab 1"
+    ]
+  },
+  {
+    "objectID": "chapter1.html#distribusi-pelanggan-berdasarkan-wilayah",
+    "href": "chapter1.html#distribusi-pelanggan-berdasarkan-wilayah",
+    "title": "Exploratory Data Analysis - Customer Churn",
+    "section": "3.1 Distribusi Pelanggan Berdasarkan Wilayah",
+    "text": "3.1 Distribusi Pelanggan Berdasarkan Wilayah\n\n\nTampilkan / Sembunyikan Kode\nggplot(customer_churn, aes(x = region, fill = region)) +\n  geom_bar() +\n  geom_text(\n    stat = \"count\",\n    aes(label = after_stat(count)),\n    vjust = -0.4,\n    size = 3.5\n  ) +\n  labs(\n    title = \"Distribusi Pelanggan Berdasarkan Wilayah\",\n    x = \"Wilayah\",\n    y = \"Jumlah Pelanggan\"\n  ) +\n  theme_minimal() +\n  theme(\n    legend.position = \"none\",\n    axis.text.x = element_text(angle = 30, hjust = 1)\n  )",
+    "crumbs": [
+      "**BAB**",
+      "1. Bab 1"
+    ]
+  },
+  {
+    "objectID": "chapter1.html#distribusi-pelanggan-berdasarkan-segmen",
+    "href": "chapter1.html#distribusi-pelanggan-berdasarkan-segmen",
+    "title": "Exploratory Data Analysis - Customer Churn",
+    "section": "3.2 Distribusi Pelanggan Berdasarkan Segmen",
+    "text": "3.2 Distribusi Pelanggan Berdasarkan Segmen\n\n\nTampilkan / Sembunyikan Kode\nggplot(customer_churn, aes(x = segment, fill = segment)) +\n  geom_bar() +\n  geom_text(\n    stat = \"count\",\n    aes(label = after_stat(count)),\n    vjust = -0.5\n  ) +\n  labs(\n    title = \"Distribusi Pelanggan Berdasarkan Segmen\",\n    x = \"Segmen Pelanggan\",\n    y = \"Jumlah Pelanggan\"\n  ) +\n  theme_minimal() +\n  theme(legend.position = \"none\")",
+    "crumbs": [
+      "**BAB**",
+      "1. Bab 1"
+    ]
+  },
+  {
+    "objectID": "chapter1.html#perbandingan-churn-berdasarkan-wilayah",
+    "href": "chapter1.html#perbandingan-churn-berdasarkan-wilayah",
+    "title": "Exploratory Data Analysis - Customer Churn",
+    "section": "3.3 Perbandingan Churn Berdasarkan Wilayah",
+    "text": "3.3 Perbandingan Churn Berdasarkan Wilayah\n\n\nTampilkan / Sembunyikan Kode\nggplot(customer_churn, aes(x = region, fill = churn)) +\n  geom_bar(position = \"dodge\") +\n  labs(\n    title = \"Jumlah Churn Berdasarkan Wilayah\",\n    x = \"Wilayah\",\n    y = \"Jumlah Pelanggan\",\n    fill = \"Status Churn\"\n  ) +\n  theme_minimal() +\n  theme(axis.text.x = element_text(angle = 30, hjust = 1))",
+    "crumbs": [
+      "**BAB**",
+      "1. Bab 1"
+    ]
+  },
+  {
+    "objectID": "chapter1.html#tingkat-churn-berdasarkan-wilayah",
+    "href": "chapter1.html#tingkat-churn-berdasarkan-wilayah",
+    "title": "Exploratory Data Analysis - Customer Churn",
+    "section": "3.4 Tingkat Churn Berdasarkan Wilayah",
+    "text": "3.4 Tingkat Churn Berdasarkan Wilayah\nJumlah churn saja belum cukup untuk membandingkan wilayah karena setiap wilayah memiliki jumlah pelanggan yang berbeda. Oleh karena itu, digunakan churn rate.\n\n\nTampilkan / Sembunyikan Kode\nregion_churn &lt;- customer_churn %&gt;%\n  group_by(region) %&gt;%\n  summarise(\n    total_customer = n(),\n    total_churn = sum(churn == \"Churn\"),\n    churn_rate = total_churn / total_customer,\n    .groups = \"drop\"\n  )\n\nggplot(region_churn,\n       aes(x = reorder(region, churn_rate),\n           y = churn_rate,\n           fill = churn_rate)) +\n  geom_col(width = 0.7) +\n  geom_text(\n    aes(label = percent(churn_rate, accuracy = 0.1)),\n    hjust = -0.2\n  ) +\n  coord_flip() +\n  scale_y_continuous(labels = percent) +\n  labs(\n    title = \"Churn Rate Berdasarkan Wilayah\",\n    x = \"Wilayah\",\n    y = \"Churn Rate\"\n  ) +\n  theme_minimal() +\n  theme(legend.position = \"none\")",
+    "crumbs": [
+      "**BAB**",
+      "1. Bab 1"
+    ]
+  },
+  {
+    "objectID": "chapter1.html#tingkat-churn-berdasarkan-segmen",
+    "href": "chapter1.html#tingkat-churn-berdasarkan-segmen",
+    "title": "Exploratory Data Analysis - Customer Churn",
+    "section": "3.5 Tingkat Churn Berdasarkan Segmen",
+    "text": "3.5 Tingkat Churn Berdasarkan Segmen\n\n\nTampilkan / Sembunyikan Kode\nsegment_churn &lt;- customer_churn %&gt;%\n  group_by(segment) %&gt;%\n  summarise(\n    total_customer = n(),\n    total_churn = sum(churn == \"Churn\"),\n    churn_rate = total_churn / total_customer,\n    .groups = \"drop\"\n  )\n\nggplot(segment_churn,\n       aes(x = reorder(segment, churn_rate),\n           y = churn_rate,\n           fill = segment)) +\n  geom_col(width = 0.7) +\n  geom_text(\n    aes(label = percent(churn_rate, accuracy = 0.1)),\n    vjust = -0.5\n  ) +\n  scale_y_continuous(\n    labels = percent,\n    limits = c(0, 0.55)\n  ) +\n  labs(\n    title = \"Churn Rate Berdasarkan Segmen Pelanggan\",\n    x = \"Segmen\",\n    y = \"Churn Rate\"\n  ) +\n  theme_minimal() +\n  theme(legend.position = \"none\")",
+    "crumbs": [
+      "**BAB**",
+      "1. Bab 1"
+    ]
+  },
+  {
+    "objectID": "chapter1.html#distribusi-jenis-kontrak",
+    "href": "chapter1.html#distribusi-jenis-kontrak",
+    "title": "Exploratory Data Analysis - Customer Churn",
+    "section": "4.1 Distribusi Jenis Kontrak",
+    "text": "4.1 Distribusi Jenis Kontrak\n\n\nTampilkan / Sembunyikan Kode\nggplot(customer_churn,\n       aes(x = contract_type, fill = contract_type)) +\n  geom_bar() +\n  geom_text(\n    stat = \"count\",\n    aes(label = after_stat(count)),\n    vjust = -0.5\n  ) +\n  labs(\n    title = \"Distribusi Jenis Kontrak Pelanggan\",\n    x = \"Jenis Kontrak\",\n    y = \"Jumlah Pelanggan\"\n  ) +\n  theme_minimal() +\n  theme(legend.position = \"none\")",
+    "crumbs": [
+      "**BAB**",
+      "1. Bab 1"
+    ]
+  },
+  {
+    "objectID": "chapter1.html#churn-berdasarkan-jenis-kontrak",
+    "href": "chapter1.html#churn-berdasarkan-jenis-kontrak",
+    "title": "Exploratory Data Analysis - Customer Churn",
+    "section": "4.2 Churn Berdasarkan Jenis Kontrak",
+    "text": "4.2 Churn Berdasarkan Jenis Kontrak\n\n\nTampilkan / Sembunyikan Kode\nggplot(customer_churn,\n       aes(x = contract_type, fill = churn)) +\n  geom_bar(position = \"dodge\") +\n  labs(\n    title = \"Jumlah Churn Berdasarkan Jenis Kontrak\",\n    x = \"Jenis Kontrak\",\n    y = \"Jumlah Pelanggan\",\n    fill = \"Status Churn\"\n  ) +\n  theme_minimal()",
+    "crumbs": [
+      "**BAB**",
+      "1. Bab 1"
+    ]
+  },
+  {
+    "objectID": "chapter1.html#churn-rate-berdasarkan-jenis-kontrak",
+    "href": "chapter1.html#churn-rate-berdasarkan-jenis-kontrak",
+    "title": "Exploratory Data Analysis - Customer Churn",
+    "section": "4.3 Churn Rate Berdasarkan Jenis Kontrak",
+    "text": "4.3 Churn Rate Berdasarkan Jenis Kontrak\n\n\nTampilkan / Sembunyikan Kode\ncontract_churn &lt;- customer_churn %&gt;%\n  group_by(contract_type) %&gt;%\n  summarise(\n    total_customer = n(),\n    total_churn = sum(churn == \"Churn\"),\n    churn_rate = total_churn / total_customer,\n    .groups = \"drop\"\n  )\n\nggplot(contract_churn,\n       aes(x = reorder(contract_type, churn_rate),\n           y = churn_rate,\n           fill = contract_type)) +\n  geom_col(width = 0.7) +\n  geom_text(\n    aes(label = percent(churn_rate, accuracy = 0.1)),\n    vjust = -0.5\n  ) +\n  scale_y_continuous(\n    labels = percent,\n    limits = c(0, 0.65)\n  ) +\n  labs(\n    title = \"Churn Rate Berdasarkan Jenis Kontrak\",\n    x = \"Jenis Kontrak\",\n    y = \"Churn Rate\"\n  ) +\n  theme_minimal() +\n  theme(legend.position = \"none\")",
+    "crumbs": [
+      "**BAB**",
+      "1. Bab 1"
+    ]
+  },
+  {
+    "objectID": "chapter1.html#distribusi-metode-pembayaran",
+    "href": "chapter1.html#distribusi-metode-pembayaran",
+    "title": "Exploratory Data Analysis - Customer Churn",
+    "section": "4.4 Distribusi Metode Pembayaran",
+    "text": "4.4 Distribusi Metode Pembayaran\n\n\nTampilkan / Sembunyikan Kode\nggplot(customer_churn,\n       aes(x = payment_method, fill = payment_method)) +\n  geom_bar() +\n  geom_text(\n    stat = \"count\",\n    aes(label = after_stat(count)),\n    vjust = -0.5,\n    size = 3.5\n  ) +\n  labs(\n    title = \"Distribusi Metode Pembayaran\",\n    x = \"Metode Pembayaran\",\n    y = \"Jumlah Pelanggan\"\n  ) +\n  theme_minimal() +\n  theme(\n    legend.position = \"none\",\n    axis.text.x = element_text(angle = 25, hjust = 1)\n  )",
+    "crumbs": [
+      "**BAB**",
+      "1. Bab 1"
+    ]
+  },
+  {
+    "objectID": "chapter1.html#churn-rate-berdasarkan-metode-pembayaran",
+    "href": "chapter1.html#churn-rate-berdasarkan-metode-pembayaran",
+    "title": "Exploratory Data Analysis - Customer Churn",
+    "section": "4.5 Churn Rate Berdasarkan Metode Pembayaran",
+    "text": "4.5 Churn Rate Berdasarkan Metode Pembayaran\n\n\nTampilkan / Sembunyikan Kode\npayment_churn &lt;- customer_churn %&gt;%\n  group_by(payment_method) %&gt;%\n  summarise(\n    total_customer = n(),\n    total_churn = sum(churn == \"Churn\"),\n    churn_rate = total_churn / total_customer,\n    .groups = \"drop\"\n  )\n\nggplot(payment_churn,\n       aes(x = reorder(payment_method, churn_rate),\n           y = churn_rate,\n           fill = payment_method)) +\n  geom_col() +\n  geom_text(\n    aes(label = percent(churn_rate, accuracy = 0.1)),\n    vjust = -0.5\n  ) +\n  scale_y_continuous(\n    labels = percent,\n    limits = c(0, 0.5)\n  ) +\n  labs(\n    title = \"Churn Rate Berdasarkan Metode Pembayaran\",\n    x = \"Metode Pembayaran\",\n    y = \"Churn Rate\"\n  ) +\n  theme_minimal() +\n  theme(\n    legend.position = \"none\",\n    axis.text.x = element_text(angle = 20, hjust = 1)\n  )",
+    "crumbs": [
+      "**BAB**",
+      "1. Bab 1"
+    ]
+  },
+  {
+    "objectID": "chapter1.html#distribusi-layanan-internet",
+    "href": "chapter1.html#distribusi-layanan-internet",
+    "title": "Exploratory Data Analysis - Customer Churn",
+    "section": "5.1 Distribusi Layanan Internet",
+    "text": "5.1 Distribusi Layanan Internet\n\n\nTampilkan / Sembunyikan Kode\nggplot(customer_churn,\n       aes(x = internet_service, fill = internet_service)) +\n  geom_bar() +\n  geom_text(\n    stat = \"count\",\n    aes(label = after_stat(count)),\n    vjust = -0.5\n  ) +\n  labs(\n    title = \"Distribusi Jenis Layanan Internet\",\n    x = \"Jenis Layanan\",\n    y = \"Jumlah Pelanggan\"\n  ) +\n  theme_minimal() +\n  theme(legend.position = \"none\")",
+    "crumbs": [
+      "**BAB**",
+      "1. Bab 1"
+    ]
+  },
+  {
+    "objectID": "chapter1.html#churn-berdasarkan-layanan-internet",
+    "href": "chapter1.html#churn-berdasarkan-layanan-internet",
+    "title": "Exploratory Data Analysis - Customer Churn",
+    "section": "5.2 Churn Berdasarkan Layanan Internet",
+    "text": "5.2 Churn Berdasarkan Layanan Internet\n\n\nTampilkan / Sembunyikan Kode\nggplot(customer_churn,\n       aes(x = internet_service, fill = churn)) +\n  geom_bar(position = \"dodge\") +\n  labs(\n    title = \"Jumlah Churn Berdasarkan Layanan Internet\",\n    x = \"Jenis Layanan\",\n    y = \"Jumlah Pelanggan\",\n    fill = \"Status Churn\"\n  ) +\n  theme_minimal()",
+    "crumbs": [
+      "**BAB**",
+      "1. Bab 1"
+    ]
+  },
+  {
+    "objectID": "chapter1.html#churn-rate-berdasarkan-layanan-internet",
+    "href": "chapter1.html#churn-rate-berdasarkan-layanan-internet",
+    "title": "Exploratory Data Analysis - Customer Churn",
+    "section": "5.3 Churn Rate Berdasarkan Layanan Internet",
+    "text": "5.3 Churn Rate Berdasarkan Layanan Internet\n\n\nTampilkan / Sembunyikan Kode\nservice_churn &lt;- customer_churn %&gt;%\n  group_by(internet_service) %&gt;%\n  summarise(\n    total_customer = n(),\n    total_churn = sum(churn == \"Churn\"),\n    churn_rate = total_churn / total_customer,\n    .groups = \"drop\"\n  )\n\nggplot(service_churn,\n       aes(x = reorder(internet_service, churn_rate),\n           y = churn_rate,\n           fill = internet_service)) +\n  geom_col(width = 0.7) +\n  geom_text(\n    aes(label = percent(churn_rate, accuracy = 0.1)),\n    vjust = -0.5\n  ) +\n  scale_y_continuous(\n    labels = percent,\n    limits = c(0, 0.5)\n  ) +\n  labs(\n    title = \"Churn Rate Berdasarkan Layanan Internet\",\n    x = \"Jenis Layanan\",\n    y = \"Churn Rate\"\n  ) +\n  theme_minimal() +\n  theme(legend.position = \"none\")",
+    "crumbs": [
+      "**BAB**",
+      "1. Bab 1"
+    ]
+  },
+  {
+    "objectID": "chapter1.html#tren-pendaftaran-pelanggan",
+    "href": "chapter1.html#tren-pendaftaran-pelanggan",
+    "title": "Exploratory Data Analysis - Customer Churn",
+    "section": "6.1 Tren Pendaftaran Pelanggan",
+    "text": "6.1 Tren Pendaftaran Pelanggan\n\n\nTampilkan / Sembunyikan Kode\nmonthly_signup &lt;- customer_churn %&gt;%\n  mutate(\n    month = as.Date(format(signup_date, \"%Y-%m-01\"))\n  ) %&gt;%\n  group_by(month) %&gt;%\n  summarise(\n    total_customer = n(),\n    .groups = \"drop\"\n  )\n\nggplot(monthly_signup,\n       aes(x = month, y = total_customer)) +\n  geom_line(color = \"#2E86AB\", linewidth = 1) +\n  geom_point(color = \"#E76F51\", size = 2) +\n  labs(\n    title = \"Tren Pendaftaran Pelanggan per Bulan\",\n    x = \"Bulan\",\n    y = \"Jumlah Pelanggan\"\n  ) +\n  theme_minimal()",
+    "crumbs": [
+      "**BAB**",
+      "1. Bab 1"
+    ]
+  },
+  {
+    "objectID": "chapter1.html#tren-churn-berdasarkan-bulan-pendaftaran",
+    "href": "chapter1.html#tren-churn-berdasarkan-bulan-pendaftaran",
+    "title": "Exploratory Data Analysis - Customer Churn",
+    "section": "6.2 Tren Churn Berdasarkan Bulan Pendaftaran",
+    "text": "6.2 Tren Churn Berdasarkan Bulan Pendaftaran\nVisualisasi ini melihat persentase pelanggan yang mengalami churn berdasarkan bulan ketika mereka mendaftar.\n\n\nTampilkan / Sembunyikan Kode\nmonthly_churn &lt;- customer_churn %&gt;%\n  mutate(\n    month = as.Date(format(signup_date, \"%Y-%m-01\"))\n  ) %&gt;%\n  group_by(month) %&gt;%\n  summarise(\n    total_customer = n(),\n    total_churn = sum(churn == \"Churn\"),\n    churn_rate = total_churn / total_customer,\n    .groups = \"drop\"\n  )\n\nggplot(monthly_churn,\n       aes(x = month, y = churn_rate)) +\n  geom_line(color = \"#E76F51\", linewidth = 1) +\n  geom_point(color = \"#2E86AB\", size = 2) +\n  scale_y_continuous(labels = percent) +\n  labs(\n    title = \"Churn Rate Berdasarkan Bulan Pendaftaran\",\n    x = \"Bulan Pendaftaran\",\n    y = \"Churn Rate\"\n  ) +\n  theme_minimal()",
+    "crumbs": [
+      "**BAB**",
+      "1. Bab 1"
+    ]
+  },
+  {
+    "objectID": "chapter1.html#distribusi-tenure-pelanggan",
+    "href": "chapter1.html#distribusi-tenure-pelanggan",
+    "title": "Exploratory Data Analysis - Customer Churn",
+    "section": "7.1 Distribusi Tenure Pelanggan",
+    "text": "7.1 Distribusi Tenure Pelanggan\n\n\nTampilkan / Sembunyikan Kode\nggplot(customer_churn,\n       aes(x = tenure_months)) +\n  geom_histogram(\n    bins = 30,\n    fill = \"#2E86AB\",\n    color = \"white\"\n  ) +\n  labs(\n    title = \"Distribusi Lama Berlangganan Pelanggan\",\n    x = \"Tenure (Bulan)\",\n    y = \"Frekuensi\"\n  ) +\n  theme_minimal()",
+    "crumbs": [
+      "**BAB**",
+      "1. Bab 1"
+    ]
+  },
+  {
+    "objectID": "chapter1.html#distribusi-tenure-berdasarkan-status-churn",
+    "href": "chapter1.html#distribusi-tenure-berdasarkan-status-churn",
+    "title": "Exploratory Data Analysis - Customer Churn",
+    "section": "7.2 Distribusi Tenure Berdasarkan Status Churn",
+    "text": "7.2 Distribusi Tenure Berdasarkan Status Churn\n\n\nTampilkan / Sembunyikan Kode\nggplot(customer_churn,\n       aes(x = tenure_months, fill = churn)) +\n  geom_density(alpha = 0.4) +\n  labs(\n    title = \"Distribusi Tenure Berdasarkan Status Churn\",\n    x = \"Tenure (Bulan)\",\n    y = \"Density\",\n    fill = \"Status\"\n  ) +\n  theme_minimal()",
+    "crumbs": [
+      "**BAB**",
+      "1. Bab 1"
+    ]
+  },
+  {
+    "objectID": "chapter1.html#perbandingan-tenure-dengan-boxplot",
+    "href": "chapter1.html#perbandingan-tenure-dengan-boxplot",
+    "title": "Exploratory Data Analysis - Customer Churn",
+    "section": "7.3 Perbandingan Tenure dengan Boxplot",
+    "text": "7.3 Perbandingan Tenure dengan Boxplot\n\n\nTampilkan / Sembunyikan Kode\nggplot(customer_churn,\n       aes(x = churn, y = tenure_months, fill = churn)) +\n  geom_boxplot(alpha = 0.7) +\n  labs(\n    title = \"Perbandingan Tenure Berdasarkan Status Churn\",\n    x = \"Status Pelanggan\",\n    y = \"Tenure (Bulan)\"\n  ) +\n  theme_minimal() +\n  theme(legend.position = \"none\")",
+    "crumbs": [
+      "**BAB**",
+      "1. Bab 1"
+    ]
+  },
+  {
+    "objectID": "chapter1.html#churn-rate-berdasarkan-kelompok-tenure",
+    "href": "chapter1.html#churn-rate-berdasarkan-kelompok-tenure",
+    "title": "Exploratory Data Analysis - Customer Churn",
+    "section": "7.4 Churn Rate Berdasarkan Kelompok Tenure",
+    "text": "7.4 Churn Rate Berdasarkan Kelompok Tenure\n\n\nTampilkan / Sembunyikan Kode\ntenure_churn &lt;- customer_churn %&gt;%\n  mutate(\n    tenure_group = cut(\n      tenure_months,\n      breaks = c(0, 12, 24, 36, 48, 60, Inf),\n      labels = c(\n        \"0-12 Bulan\",\n        \"13-24 Bulan\",\n        \"25-36 Bulan\",\n        \"37-48 Bulan\",\n        \"49-60 Bulan\",\n        \"&gt;60 Bulan\"\n      )\n    )\n  ) %&gt;%\n  group_by(tenure_group) %&gt;%\n  summarise(\n    total_customer = n(),\n    total_churn = sum(churn == \"Churn\"),\n    churn_rate = total_churn / total_customer,\n    .groups = \"drop\"\n  )\n\nggplot(tenure_churn,\n       aes(x = tenure_group, y = churn_rate, fill = tenure_group)) +\n  geom_col() +\n  geom_text(\n    aes(label = percent(churn_rate, accuracy = 0.1)),\n    vjust = -0.5\n  ) +\n  scale_y_continuous(labels = percent) +\n  labs(\n    title = \"Churn Rate Berdasarkan Kelompok Tenure\",\n    x = \"Kelompok Tenure\",\n    y = \"Churn Rate\"\n  ) +\n  theme_minimal() +\n  theme(\n    legend.position = \"none\",\n    axis.text.x = element_text(angle = 25, hjust = 1)\n  )",
+    "crumbs": [
+      "**BAB**",
+      "1. Bab 1"
+    ]
+  },
+  {
+    "objectID": "chapter1.html#distribusi-biaya-bulanan",
+    "href": "chapter1.html#distribusi-biaya-bulanan",
+    "title": "Exploratory Data Analysis - Customer Churn",
+    "section": "8.1 Distribusi Biaya Bulanan",
+    "text": "8.1 Distribusi Biaya Bulanan\n\n\nTampilkan / Sembunyikan Kode\nggplot(customer_churn,\n       aes(x = monthly_charges)) +\n  geom_histogram(\n    bins = 30,\n    fill = \"#2E86AB\",\n    color = \"white\"\n  ) +\n  scale_x_continuous(labels = label_number(big.mark = \".\")) +\n  labs(\n    title = \"Distribusi Biaya Bulanan Pelanggan\",\n    x = \"Monthly Charges (Rp)\",\n    y = \"Frekuensi\"\n  ) +\n  theme_minimal()\n\n\nWarning in prettyNum(.Internal(format(x, trim, digits, nsmall, width, 3L, :\n'big.mark' and 'decimal.mark' are both '.', which could be confusing",
+    "crumbs": [
+      "**BAB**",
+      "1. Bab 1"
+    ]
+  },
+  {
+    "objectID": "chapter1.html#distribusi-total-biaya",
+    "href": "chapter1.html#distribusi-total-biaya",
+    "title": "Exploratory Data Analysis - Customer Churn",
+    "section": "8.2 Distribusi Total Biaya",
+    "text": "8.2 Distribusi Total Biaya\n\n\nTampilkan / Sembunyikan Kode\nggplot(customer_churn,\n       aes(x = total_charges)) +\n  geom_histogram(\n    bins = 30,\n    fill = \"#E76F51\",\n    color = \"white\",\n    na.rm = TRUE\n  ) +\n  scale_x_continuous(labels = label_number(big.mark = \".\")) +\n  labs(\n    title = \"Distribusi Total Biaya Pelanggan\",\n    x = \"Total Charges (Rp)\",\n    y = \"Frekuensi\"\n  ) +\n  theme_minimal()\n\n\nWarning in prettyNum(.Internal(format(x, trim, digits, nsmall, width, 3L, :\n'big.mark' and 'decimal.mark' are both '.', which could be confusing",
+    "crumbs": [
+      "**BAB**",
+      "1. Bab 1"
+    ]
+  },
+  {
+    "objectID": "chapter1.html#perbandingan-monthly-charges-berdasarkan-churn",
+    "href": "chapter1.html#perbandingan-monthly-charges-berdasarkan-churn",
+    "title": "Exploratory Data Analysis - Customer Churn",
+    "section": "8.3 Perbandingan Monthly Charges Berdasarkan Churn",
+    "text": "8.3 Perbandingan Monthly Charges Berdasarkan Churn\n\n\nTampilkan / Sembunyikan Kode\nggplot(customer_churn,\n       aes(x = churn, y = monthly_charges, fill = churn)) +\n  geom_boxplot() +\n  scale_y_continuous(labels = label_number(big.mark = \".\")) +\n  labs(\n    title = \"Monthly Charges Berdasarkan Status Churn\",\n    x = \"Status Pelanggan\",\n    y = \"Monthly Charges (Rp)\"\n  ) +\n  theme_minimal() +\n  theme(legend.position = \"none\")\n\n\nWarning in prettyNum(.Internal(format(x, trim, digits, nsmall, width, 3L, :\n'big.mark' and 'decimal.mark' are both '.', which could be confusing",
+    "crumbs": [
+      "**BAB**",
+      "1. Bab 1"
+    ]
+  },
+  {
+    "objectID": "chapter1.html#perbandingan-total-charges-berdasarkan-churn",
+    "href": "chapter1.html#perbandingan-total-charges-berdasarkan-churn",
+    "title": "Exploratory Data Analysis - Customer Churn",
+    "section": "8.4 Perbandingan Total Charges Berdasarkan Churn",
+    "text": "8.4 Perbandingan Total Charges Berdasarkan Churn\n\n\nTampilkan / Sembunyikan Kode\nggplot(customer_churn,\n       aes(x = churn, y = total_charges, fill = churn)) +\n  geom_boxplot(na.rm = TRUE) +\n  scale_y_continuous(labels = label_number(big.mark = \".\")) +\n  labs(\n    title = \"Total Charges Berdasarkan Status Churn\",\n    x = \"Status Pelanggan\",\n    y = \"Total Charges (Rp)\"\n  ) +\n  theme_minimal() +\n  theme(legend.position = \"none\")\n\n\nWarning in prettyNum(.Internal(format(x, trim, digits, nsmall, width, 3L, :\n'big.mark' and 'decimal.mark' are both '.', which could be confusing",
+    "crumbs": [
+      "**BAB**",
+      "1. Bab 1"
+    ]
+  },
+  {
+    "objectID": "chapter1.html#hubungan-monthly-charges-dan-total-charges",
+    "href": "chapter1.html#hubungan-monthly-charges-dan-total-charges",
+    "title": "Exploratory Data Analysis - Customer Churn",
+    "section": "8.5 Hubungan Monthly Charges dan Total Charges",
+    "text": "8.5 Hubungan Monthly Charges dan Total Charges\n\n\nTampilkan / Sembunyikan Kode\nggplot(customer_churn,\n       aes(x = monthly_charges,\n           y = total_charges,\n           color = churn)) +\n  geom_point(alpha = 0.5, na.rm = TRUE) +\n  geom_smooth(\n    method = \"lm\",\n    se = FALSE,\n    na.rm = TRUE\n  ) +\n  scale_x_continuous(labels = label_number(big.mark = \".\")) +\n  scale_y_continuous(labels = label_number(big.mark = \".\")) +\n  labs(\n    title = \"Hubungan Biaya Bulanan dan Total Biaya\",\n    x = \"Monthly Charges (Rp)\",\n    y = \"Total Charges (Rp)\",\n    color = \"Status Churn\"\n  ) +\n  theme_minimal()\n\n\n`geom_smooth()` using formula = 'y ~ x'\n\n\nWarning in prettyNum(.Internal(format(x, trim, digits, nsmall, width, 3L, :\n'big.mark' and 'decimal.mark' are both '.', which could be confusing\nWarning in prettyNum(.Internal(format(x, trim, digits, nsmall, width, 3L, :\n'big.mark' and 'decimal.mark' are both '.', which could be confusing",
+    "crumbs": [
+      "**BAB**",
+      "1. Bab 1"
+    ]
+  },
+  {
+    "objectID": "chapter1.html#distribusi-jumlah-keluhan",
+    "href": "chapter1.html#distribusi-jumlah-keluhan",
+    "title": "Exploratory Data Analysis - Customer Churn",
+    "section": "9.1 Distribusi Jumlah Keluhan",
+    "text": "9.1 Distribusi Jumlah Keluhan\n\n\nTampilkan / Sembunyikan Kode\nggplot(customer_churn,\n       aes(x = factor(num_complaints))) +\n  geom_bar(fill = \"#2E86AB\") +\n  labs(\n    title = \"Distribusi Jumlah Keluhan Pelanggan\",\n    x = \"Jumlah Keluhan\",\n    y = \"Jumlah Pelanggan\"\n  ) +\n  theme_minimal()",
+    "crumbs": [
+      "**BAB**",
+      "1. Bab 1"
+    ]
+  },
+  {
+    "objectID": "chapter1.html#jumlah-keluhan-berdasarkan-status-churn",
+    "href": "chapter1.html#jumlah-keluhan-berdasarkan-status-churn",
+    "title": "Exploratory Data Analysis - Customer Churn",
+    "section": "9.2 Jumlah Keluhan Berdasarkan Status Churn",
+    "text": "9.2 Jumlah Keluhan Berdasarkan Status Churn\n\n\nTampilkan / Sembunyikan Kode\nggplot(customer_churn,\n       aes(x = churn, y = num_complaints, fill = churn)) +\n  geom_boxplot() +\n  labs(\n    title = \"Jumlah Keluhan Berdasarkan Status Churn\",\n    x = \"Status Pelanggan\",\n    y = \"Jumlah Keluhan\"\n  ) +\n  theme_minimal() +\n  theme(legend.position = \"none\")",
+    "crumbs": [
+      "**BAB**",
+      "1. Bab 1"
+    ]
+  },
+  {
+    "objectID": "chapter1.html#churn-rate-berdasarkan-jumlah-keluhan",
+    "href": "chapter1.html#churn-rate-berdasarkan-jumlah-keluhan",
+    "title": "Exploratory Data Analysis - Customer Churn",
+    "section": "9.3 Churn Rate Berdasarkan Jumlah Keluhan",
+    "text": "9.3 Churn Rate Berdasarkan Jumlah Keluhan\n\n\nTampilkan / Sembunyikan Kode\ncomplaint_churn &lt;- customer_churn %&gt;%\n  group_by(num_complaints) %&gt;%\n  summarise(\n    total_customer = n(),\n    total_churn = sum(churn == \"Churn\"),\n    churn_rate = total_churn / total_customer,\n    .groups = \"drop\"\n  )\n\nggplot(complaint_churn,\n       aes(x = num_complaints, y = churn_rate)) +\n  geom_col(fill = \"#E76F51\") +\n  geom_text(\n    aes(label = percent(churn_rate, accuracy = 0.1)),\n    vjust = -0.5\n  ) +\n  scale_y_continuous(labels = percent) +\n  labs(\n    title = \"Churn Rate Berdasarkan Jumlah Keluhan\",\n    x = \"Jumlah Keluhan\",\n    y = \"Churn Rate\"\n  ) +\n  theme_minimal()",
+    "crumbs": [
+      "**BAB**",
+      "1. Bab 1"
+    ]
+  },
+  {
+    "objectID": "chapter1.html#distribusi-support-calls",
+    "href": "chapter1.html#distribusi-support-calls",
+    "title": "Exploratory Data Analysis - Customer Churn",
+    "section": "9.4 Distribusi Support Calls",
+    "text": "9.4 Distribusi Support Calls\n\n\nTampilkan / Sembunyikan Kode\nggplot(customer_churn,\n       aes(x = factor(support_calls))) +\n  geom_bar(fill = \"#2E86AB\") +\n  labs(\n    title = \"Distribusi Jumlah Panggilan Customer Support\",\n    x = \"Jumlah Support Calls\",\n    y = \"Jumlah Pelanggan\"\n  ) +\n  theme_minimal()",
+    "crumbs": [
+      "**BAB**",
+      "1. Bab 1"
+    ]
+  },
+  {
+    "objectID": "chapter1.html#support-calls-berdasarkan-status-churn",
+    "href": "chapter1.html#support-calls-berdasarkan-status-churn",
+    "title": "Exploratory Data Analysis - Customer Churn",
+    "section": "9.5 Support Calls Berdasarkan Status Churn",
+    "text": "9.5 Support Calls Berdasarkan Status Churn\n\n\nTampilkan / Sembunyikan Kode\nggplot(customer_churn,\n       aes(x = churn, y = support_calls, fill = churn)) +\n  geom_boxplot() +\n  labs(\n    title = \"Support Calls Berdasarkan Status Churn\",\n    x = \"Status Pelanggan\",\n    y = \"Jumlah Support Calls\"\n  ) +\n  theme_minimal() +\n  theme(legend.position = \"none\")",
+    "crumbs": [
+      "**BAB**",
+      "1. Bab 1"
+    ]
+  },
+  {
+    "objectID": "chapter1.html#churn-rate-berdasarkan-support-calls",
+    "href": "chapter1.html#churn-rate-berdasarkan-support-calls",
+    "title": "Exploratory Data Analysis - Customer Churn",
+    "section": "9.6 Churn Rate Berdasarkan Support Calls",
+    "text": "9.6 Churn Rate Berdasarkan Support Calls\n\n\nTampilkan / Sembunyikan Kode\nsupport_churn &lt;- customer_churn %&gt;%\n  group_by(support_calls) %&gt;%\n  summarise(\n    total_customer = n(),\n    total_churn = sum(churn == \"Churn\"),\n    churn_rate = total_churn / total_customer,\n    .groups = \"drop\"\n  )\n\nggplot(support_churn,\n       aes(x = support_calls, y = churn_rate)) +\n  geom_col(fill = \"#E76F51\") +\n  geom_text(\n    aes(label = percent(churn_rate, accuracy = 0.1)),\n    vjust = -0.5,\n    size = 3\n  ) +\n  scale_y_continuous(labels = percent) +\n  labs(\n    title = \"Churn Rate Berdasarkan Jumlah Support Calls\",\n    x = \"Jumlah Support Calls\",\n    y = \"Churn Rate\"\n  ) +\n  theme_minimal()",
+    "crumbs": [
+      "**BAB**",
+      "1. Bab 1"
+    ]
+  },
+  {
+    "objectID": "chapter1.html#hubungan-keluhan-dan-support-calls",
+    "href": "chapter1.html#hubungan-keluhan-dan-support-calls",
+    "title": "Exploratory Data Analysis - Customer Churn",
+    "section": "9.7 Hubungan Keluhan dan Support Calls",
+    "text": "9.7 Hubungan Keluhan dan Support Calls\n\n\nTampilkan / Sembunyikan Kode\nggplot(customer_churn,\n       aes(x = num_complaints,\n           y = support_calls,\n           color = churn)) +\n  geom_jitter(\n    alpha = 0.4,\n    width = 0.15,\n    height = 0.15\n  ) +\n  labs(\n    title = \"Hubungan Jumlah Keluhan dan Support Calls\",\n    x = \"Jumlah Keluhan\",\n    y = \"Jumlah Support Calls\",\n    color = \"Status Churn\"\n  ) +\n  theme_minimal()",
+    "crumbs": [
+      "**BAB**",
+      "1. Bab 1"
+    ]
+  },
+  {
+    "objectID": "chapter1.html#hubungan-tenure-dan-total-charges",
+    "href": "chapter1.html#hubungan-tenure-dan-total-charges",
+    "title": "Exploratory Data Analysis - Customer Churn",
+    "section": "10.1 Hubungan Tenure dan Total Charges",
+    "text": "10.1 Hubungan Tenure dan Total Charges\n\n\nTampilkan / Sembunyikan Kode\nggplot(customer_churn,\n       aes(x = tenure_months,\n           y = total_charges,\n           color = churn)) +\n  geom_point(alpha = 0.5, na.rm = TRUE) +\n  geom_smooth(\n    method = \"lm\",\n    se = FALSE,\n    na.rm = TRUE\n  ) +\n  scale_y_continuous(labels = label_number(big.mark = \".\")) +\n  labs(\n    title = \"Hubungan Tenure dan Total Charges\",\n    x = \"Tenure (Bulan)\",\n    y = \"Total Charges (Rp)\",\n    color = \"Status Churn\"\n  ) +\n  theme_minimal()\n\n\n`geom_smooth()` using formula = 'y ~ x'\n\n\nWarning in prettyNum(.Internal(format(x, trim, digits, nsmall, width, 3L, :\n'big.mark' and 'decimal.mark' are both '.', which could be confusing",
+    "crumbs": [
+      "**BAB**",
+      "1. Bab 1"
+    ]
+  },
+  {
+    "objectID": "chapter1.html#hubungan-tenure-dan-monthly-charges",
+    "href": "chapter1.html#hubungan-tenure-dan-monthly-charges",
+    "title": "Exploratory Data Analysis - Customer Churn",
+    "section": "10.2 Hubungan Tenure dan Monthly Charges",
+    "text": "10.2 Hubungan Tenure dan Monthly Charges\n\n\nTampilkan / Sembunyikan Kode\nggplot(customer_churn,\n       aes(x = tenure_months,\n           y = monthly_charges,\n           color = churn)) +\n  geom_point(alpha = 0.5) +\n  geom_smooth(\n    method = \"lm\",\n    se = FALSE\n  ) +\n  labs(\n    title = \"Hubungan Tenure dan Monthly Charges\",\n    x = \"Tenure (Bulan)\",\n    y = \"Monthly Charges (Rp)\",\n    color = \"Status Churn\"\n  ) +\n  theme_minimal()\n\n\n`geom_smooth()` using formula = 'y ~ x'",
+    "crumbs": [
+      "**BAB**",
+      "1. Bab 1"
+    ]
+  },
+  {
+    "objectID": "chapter1.html#korelasi-antarvariabel-numerik",
+    "href": "chapter1.html#korelasi-antarvariabel-numerik",
+    "title": "Exploratory Data Analysis - Customer Churn",
+    "section": "10.3 Korelasi Antarvariabel Numerik",
+    "text": "10.3 Korelasi Antarvariabel Numerik\n\n\nTampilkan / Sembunyikan Kode\nnumeric_data &lt;- customer_churn %&gt;%\n  select(\n    tenure_months,\n    monthly_charges,\n    total_charges,\n    num_complaints,\n    support_calls,\n    churn_num\n  )\n\ncorrelation_matrix &lt;- cor(\n  numeric_data,\n  use = \"pairwise.complete.obs\"\n)\n\ncorrelation_data &lt;- as.data.frame(\n  as.table(correlation_matrix)\n)\n\nggplot(\n  correlation_data,\n  aes(x = Var1, y = Var2, fill = Freq)\n) +\n  geom_tile(color = \"white\") +\n  geom_text(\n    aes(label = round(Freq, 2)),\n    size = 3.5\n  ) +\n  scale_fill_gradient2(\n    low = \"#E76F51\",\n    mid = \"white\",\n    high = \"#2E86AB\",\n    midpoint = 0,\n    limits = c(-1, 1)\n  ) +\n  labs(\n    title = \"Correlation Heatmap Antarvariabel\",\n    x = \"\",\n    y = \"\",\n    fill = \"Korelasi\"\n  ) +\n  theme_minimal() +\n  theme(\n    axis.text.x = element_text(\n      angle = 45,\n      hjust = 1\n    )\n  )",
+    "crumbs": [
+      "**BAB**",
+      "1. Bab 1"
+    ]
+  },
+  {
+    "objectID": "chapter1.html#churn-berdasarkan-kombinasi-kontrak-dan-segmen",
+    "href": "chapter1.html#churn-berdasarkan-kombinasi-kontrak-dan-segmen",
+    "title": "Exploratory Data Analysis - Customer Churn",
+    "section": "11.1 Churn Berdasarkan Kombinasi Kontrak dan Segmen",
+    "text": "11.1 Churn Berdasarkan Kombinasi Kontrak dan Segmen\n\n\nTampilkan / Sembunyikan Kode\ncontract_segment &lt;- customer_churn %&gt;%\n  group_by(contract_type, segment) %&gt;%\n  summarise(\n    total_customer = n(),\n    total_churn = sum(churn == \"Churn\"),\n    churn_rate = total_churn / total_customer,\n    .groups = \"drop\"\n  )\n\nggplot(\n  contract_segment,\n  aes(\n    x = contract_type,\n    y = segment,\n    fill = churn_rate\n  )\n) +\n  geom_tile(color = \"white\") +\n  geom_text(\n    aes(\n      label = paste0(\n        percent(churn_rate, accuracy = 0.1),\n        \"\\n(n=\", total_customer, \")\"\n      )\n    ),\n    size = 3.5\n  ) +\n  scale_fill_gradient(\n    low = \"#D9EAF2\",\n    high = \"#E76F51\",\n    labels = percent\n  ) +\n  labs(\n    title = \"Churn Rate Berdasarkan Kontrak dan Segmen\",\n    x = \"Jenis Kontrak\",\n    y = \"Segmen Pelanggan\",\n    fill = \"Churn Rate\"\n  ) +\n  theme_minimal()",
+    "crumbs": [
+      "**BAB**",
+      "1. Bab 1"
+    ]
+  },
+  {
+    "objectID": "chapter1.html#churn-berdasarkan-wilayah-dan-jenis-kontrak",
+    "href": "chapter1.html#churn-berdasarkan-wilayah-dan-jenis-kontrak",
+    "title": "Exploratory Data Analysis - Customer Churn",
+    "section": "11.2 Churn Berdasarkan Wilayah dan Jenis Kontrak",
+    "text": "11.2 Churn Berdasarkan Wilayah dan Jenis Kontrak\n\n\nTampilkan / Sembunyikan Kode\nregion_contract &lt;- customer_churn %&gt;%\n  group_by(region, contract_type) %&gt;%\n  summarise(\n    total_customer = n(),\n    total_churn = sum(churn == \"Churn\"),\n    churn_rate = total_churn / total_customer,\n    .groups = \"drop\"\n  )\n\nggplot(\n  region_contract,\n  aes(\n    x = contract_type,\n    y = region,\n    fill = churn_rate\n  )\n) +\n  geom_tile(color = \"white\") +\n  geom_text(\n    aes(label = percent(churn_rate, accuracy = 0.1)),\n    size = 3\n  ) +\n  scale_fill_gradient(\n    low = \"#D9EAF2\",\n    high = \"#E76F51\",\n    labels = percent\n  ) +\n  labs(\n    title = \"Churn Rate Berdasarkan Wilayah dan Kontrak\",\n    x = \"Jenis Kontrak\",\n    y = \"Wilayah\",\n    fill = \"Churn Rate\"\n  ) +\n  theme_minimal()",
+    "crumbs": [
+      "**BAB**",
+      "1. Bab 1"
+    ]
+  },
+  {
+    "objectID": "chapter1.html#ringkasan-churn-berdasarkan-variabel-kategorikal",
+    "href": "chapter1.html#ringkasan-churn-berdasarkan-variabel-kategorikal",
+    "title": "Exploratory Data Analysis - Customer Churn",
+    "section": "12.1 Ringkasan Churn Berdasarkan Variabel Kategorikal",
+    "text": "12.1 Ringkasan Churn Berdasarkan Variabel Kategorikal\nTabel berikut digunakan untuk membandingkan churn rate pada setiap kategori.\n\n\nTampilkan / Sembunyikan Kode\ncategorical_summary &lt;- bind_rows(\n  customer_churn %&gt;%\n    group_by(region) %&gt;%\n    summarise(\n      variable = \"Region\",\n      category = as.character(first(region)),\n      total_customer = n(),\n      total_churn = sum(churn == \"Churn\"),\n      churn_rate = total_churn / total_customer,\n      .groups = \"drop\"\n    ) %&gt;%\n    select(variable, category, total_customer, total_churn, churn_rate),\n\n  customer_churn %&gt;%\n    group_by(segment) %&gt;%\n    summarise(\n      variable = \"Segment\",\n      category = as.character(first(segment)),\n      total_customer = n(),\n      total_churn = sum(churn == \"Churn\"),\n      churn_rate = total_churn / total_customer,\n      .groups = \"drop\"\n    ) %&gt;%\n    select(variable, category, total_customer, total_churn, churn_rate),\n\n  customer_churn %&gt;%\n    group_by(contract_type) %&gt;%\n    summarise(\n      variable = \"Contract\",\n      category = as.character(first(contract_type)),\n      total_customer = n(),\n      total_churn = sum(churn == \"Churn\"),\n      churn_rate = total_churn / total_customer,\n      .groups = \"drop\"\n    ) %&gt;%\n    select(variable, category, total_customer, total_churn, churn_rate),\n\n  customer_churn %&gt;%\n    group_by(payment_method) %&gt;%\n    summarise(\n      variable = \"Payment Method\",\n      category = as.character(first(payment_method)),\n      total_customer = n(),\n      total_churn = sum(churn == \"Churn\"),\n      churn_rate = total_churn / total_customer,\n      .groups = \"drop\"\n    ) %&gt;%\n    select(variable, category, total_customer, total_churn, churn_rate),\n\n  customer_churn %&gt;%\n    group_by(internet_service) %&gt;%\n    summarise(\n      variable = \"Internet Service\",\n      category = as.character(first(internet_service)),\n      total_customer = n(),\n      total_churn = sum(churn == \"Churn\"),\n      churn_rate = total_churn / total_customer,\n      .groups = \"drop\"\n    ) %&gt;%\n    select(variable, category, total_customer, total_churn, churn_rate)\n)\n\ncategorical_summary %&gt;%\n  arrange(desc(churn_rate)) %&gt;%\n  mutate(churn_rate = percent(churn_rate, accuracy = 0.1)) %&gt;%\n  knitr::kable(\n    caption = \"Churn Rate Berdasarkan Kategori Pelanggan\"\n  )\n\n\n\nChurn Rate Berdasarkan Kategori Pelanggan\n\n\n\n\n\n\n\n\n\nvariable\ncategory\ntotal_customer\ntotal_churn\nchurn_rate\n\n\n\n\nContract\nBulanan\n1541\n841\n54.6%\n\n\nSegment\nKorporat\n321\n141\n43.9%\n\n\nPayment Method\nTransfer Bank\n901\n351\n39.0%\n\n\nSegment\nUMKM\n843\n318\n37.7%\n\n\nRegion\nKalimantan\n332\n124\n37.3%\n\n\nRegion\nSumatera\n670\n242\n36.1%\n\n\nInternet Service\nMobile Broadband\n643\n228\n35.5%\n\n\nRegion\nSulawesi\n430\n150\n34.9%\n\n\nInternet Service\nDSL\n926\n323\n34.9%\n\n\nInternet Service\nFiber\n1431\n497\n34.7%\n\n\nRegion\nJawa\n1262\n436\n34.5%\n\n\nPayment Method\nE-Wallet\n862\n293\n34.0%\n\n\nPayment Method\nKartu Kredit\n653\n221\n33.8%\n\n\nSegment\nRetail\n1836\n589\n32.1%\n\n\nRegion\nBali-Nusa Tenggara\n306\n96\n31.4%\n\n\nPayment Method\nVirtual Account\n584\n183\n31.3%\n\n\nContract\nTahunan\n923\n155\n16.8%\n\n\nContract\nDua Tahun\n536\n52\n9.7%",
+    "crumbs": [
+      "**BAB**",
+      "1. Bab 1"
+    ]
+  },
+  {
+    "objectID": "chapter1.html#faktor-dengan-churn-rate-tertinggi",
+    "href": "chapter1.html#faktor-dengan-churn-rate-tertinggi",
+    "title": "Exploratory Data Analysis - Customer Churn",
+    "section": "12.2 Faktor dengan Churn Rate Tertinggi",
+    "text": "12.2 Faktor dengan Churn Rate Tertinggi\n\n\nTampilkan / Sembunyikan Kode\ncategorical_summary %&gt;%\n  group_by(variable) %&gt;%\n  slice_max(\n    order_by = churn_rate,\n    n = 1,\n    with_ties = FALSE\n  ) %&gt;%\n  ungroup() %&gt;%\n  mutate(\n    churn_rate = percent(churn_rate, accuracy = 0.1)\n  ) %&gt;%\n  knitr::kable(\n    caption = \"Kategori dengan Churn Rate Tertinggi pada Setiap Variabel\"\n  )\n\n\n\nKategori dengan Churn Rate Tertinggi pada Setiap Variabel\n\n\n\n\n\n\n\n\n\nvariable\ncategory\ntotal_customer\ntotal_churn\nchurn_rate\n\n\n\n\nContract\nBulanan\n1541\n841\n54.6%\n\n\nInternet Service\nMobile Broadband\n643\n228\n35.5%\n\n\nPayment Method\nTransfer Bank\n901\n351\n39.0%\n\n\nRegion\nKalimantan\n332\n124\n37.3%\n\n\nSegment\nKorporat\n321\n141\n43.9%",
+    "crumbs": [
+      "**BAB**",
+      "1. Bab 1"
+    ]
+  },
+  {
+    "objectID": "chapter1.html#rangkuman-statistik-numerik-berdasarkan-churn",
+    "href": "chapter1.html#rangkuman-statistik-numerik-berdasarkan-churn",
+    "title": "Exploratory Data Analysis - Customer Churn",
+    "section": "12.3 Rangkuman Statistik Numerik Berdasarkan Churn",
+    "text": "12.3 Rangkuman Statistik Numerik Berdasarkan Churn\n\n\nTampilkan / Sembunyikan Kode\ncustomer_churn %&gt;%\n  group_by(churn) %&gt;%\n  summarise(\n    total_customer = n(),\n    avg_tenure = mean(tenure_months),\n    avg_monthly_charges = mean(monthly_charges),\n    avg_total_charges = mean(total_charges, na.rm = TRUE),\n    avg_complaints = mean(num_complaints),\n    avg_support_calls = mean(support_calls),\n    .groups = \"drop\"\n  ) %&gt;%\n  knitr::kable(\n    digits = 2,\n    caption = \"Rata-rata Karakteristik Pelanggan Berdasarkan Status Churn\"\n  )\n\n\n\nRata-rata Karakteristik Pelanggan Berdasarkan Status Churn\n\n\n\n\n\n\n\n\n\n\n\nchurn\ntotal_customer\navg_tenure\navg_monthly_charges\navg_total_charges\navg_complaints\navg_support_calls\n\n\n\n\nTidak Churn\n1952\n30.45\n413204.4\n12727327\n0.98\n2.24\n\n\nChurn\n1048\n19.21\n443971.4\n8647159\n1.40\n2.78",
+    "crumbs": [
+      "**BAB**",
+      "1. Bab 1"
+    ]
+  },
+  {
+    "objectID": "chapter1.html#kesimpulan-dan-insight",
+    "href": "chapter1.html#kesimpulan-dan-insight",
+    "title": "Exploratory Data Analysis - Customer Churn",
+    "section": "12.4 Kesimpulan dan Insight",
+    "text": "12.4 Kesimpulan dan Insight\nBerdasarkan seluruh proses Exploratory Data Analysis, beberapa aspek yang perlu diperhatikan adalah:\n\nCustomer Churn: Mengidentifikasi proporsi pelanggan yang berhenti berlangganan dibandingkan pelanggan yang masih aktif.\nCustomer Segmentation: Mengetahui wilayah dan segmen pelanggan yang memiliki tingkat churn relatif tinggi.\nContract Type: Membandingkan tingkat churn berdasarkan jenis kontrak untuk melihat apakah pelanggan dengan kontrak bulanan memiliki kecenderungan churn yang berbeda dari kontrak jangka panjang.\nCustomer Tenure: Menganalisis hubungan antara lama berlangganan dengan status churn, khususnya apakah pelanggan dengan masa berlangganan lebih singkat menunjukkan tingkat churn lebih tinggi.\nFinancial Analysis: Mengidentifikasi perbedaan biaya bulanan dan total biaya antara pelanggan yang churn dan tidak churn.\nCustomer Experience: Menganalisis apakah jumlah keluhan dan panggilan customer support memiliki pola hubungan dengan churn.\nCustomer Behavior: Menggabungkan beberapa variabel untuk menemukan kelompok pelanggan yang perlu mendapatkan perhatian lebih.\n\nHasil EDA ini dapat digunakan sebagai dasar untuk menentukan variabel yang akan dianalisis lebih lanjut dalam tahap pemodelan Machine Learning, khususnya prediksi Customer Churn.\nPerlu diperhatikan bahwa hubungan antarvariabel dalam EDA tidak secara otomatis menunjukkan hubungan sebab-akibat. Analisis lanjutan diperlukan untuk menguji temuan tersebut.",
+    "crumbs": [
+      "**BAB**",
+      "1. Bab 1"
+    ]
+  },
+  {
+    "objectID": "intro.html#apa-itu-dataset",
+    "href": "intro.html#apa-itu-dataset",
+    "title": "Enter Your Main Content",
+    "section": "",
+    "text": "Dataset merupakan kumpulan data yang disusun secara terstruktur, biasanya dalam bentuk tabel, sehingga dapat digunakan untuk analisis dan pengambilan keputusan.\nSebuah dataset umumnya terdiri dari:\n\nBaris (Rows): Setiap baris merepresentasikan satu observasi atau satu data.\nKolom (Columns): Setiap kolom merepresentasikan variabel atau atribut dari suatu observasi.\n\nPada analisis ini, kita akan menggunakan dataset Customer Churn yang berisi informasi pelanggan suatu layanan internet.\nDataset ini memiliki 3.000 observasi dan 13 variabel yang menggambarkan karakteristik pelanggan, jenis layanan, biaya berlangganan, hingga status pelanggan yang berhenti berlangganan (churn).\nContoh beberapa data:\n\n\n\ncustomer_id\nregion\ncontract_type\nmonthly_charges\nchurn\n\n\n\n\nCUST-00001\nSulawesi\nBulanan\n373000\n1\n\n\nCUST-00002\nSumatera\nBulanan\n345000\n1\n\n\nCUST-00003\nSulawesi\nTahunan\n471000\n0\n\n\nCUST-00004\nKalimantan\nBulanan\n555000\n1\n\n\nCUST-00005\nJawa\nBulanan\n340000\n0\n\n\n\nCatatan: Tabel di atas merupakan contoh beberapa observasi dari dataset asli.",
+    "crumbs": [
+      "**INTRODUCTION**"
+    ]
+  },
+  {
+    "objectID": "intro.html#mengenal-dataset-customer-churn",
+    "href": "intro.html#mengenal-dataset-customer-churn",
+    "title": "Enter Your Main Content",
+    "section": "",
+    "text": "Customer Churn merupakan kondisi ketika pelanggan berhenti menggunakan atau berlangganan suatu layanan.\nAnalisis customer churn penting bagi perusahaan karena dapat membantu memahami karakteristik pelanggan yang berhenti berlangganan serta mengidentifikasi faktor-faktor yang berkaitan dengan keputusan tersebut.\nDataset yang digunakan dalam latihan ini memiliki beberapa kelompok variabel:\n\n\n\nKelompok\nVariabel\n\n\n\n\nIdentitas Pelanggan\ncustomer_id\n\n\nInformasi Pendaftaran\nsignup_date, region\n\n\nSegmentasi\nsegment\n\n\nInformasi Kontrak\ncontract_type\n\n\nPembayaran\npayment_method\n\n\nLayanan\ninternet_service\n\n\nAktivitas Berlangganan\ntenure_months\n\n\nInformasi Biaya\nmonthly_charges, total_charges\n\n\nPengalaman Pelanggan\nnum_complaints, support_calls\n\n\nTarget Analisis\nchurn\n\n\n\nKeterangan variabel churn:\n\n0 = Pelanggan tidak berhenti berlangganan.\n1 = Pelanggan berhenti berlangganan.\n\nVariabel churn akan menjadi fokus utama dalam analisis karena kita ingin mengetahui pola dan karakteristik pelanggan yang mengalami churn.",
+    "crumbs": [
+      "**INTRODUCTION**"
+    ]
+  },
+  {
+    "objectID": "intro.html#mengapa-dataset-disimpan-di-github",
+    "href": "intro.html#mengapa-dataset-disimpan-di-github",
+    "title": "Enter Your Main Content",
+    "section": "",
+    "text": "GitHub merupakan platform yang dapat digunakan untuk menyimpan dan mengelola file dalam sebuah repository.\nDataset Customer Churn pada latihan ini disimpan dalam repository GitHub sehingga dapat diakses secara langsung melalui internet.\nAlur pengambilan dataset:\nGitHub Repository → File CSV → Raw URL → RStudio → Dataset\nKeuntungan menggunakan dataset dari GitHub:\n\nTidak perlu mengunduh dataset secara manual.\nDataset dapat diakses melalui URL.\nMemudahkan proses reproduksi analisis.\nDataset dapat digunakan pada komputer yang berbeda selama memiliki akses internet dan URL masih tersedia.",
+    "crumbs": [
+      "**INTRODUCTION**"
+    ]
+  },
+  {
+    "objectID": "intro.html#url-halaman-github-vs-url-raw",
+    "href": "intro.html#url-halaman-github-vs-url-raw",
+    "title": "Enter Your Main Content",
+    "section": "",
+    "text": "Salah satu hal penting ketika membaca dataset dari GitHub adalah memahami perbedaan antara URL halaman GitHub dan URL Raw.\n\n\nURL halaman GitHub digunakan untuk melihat file melalui browser.\nContoh:\nhttps://github.com/Muhammadrizkybagas/bookdown-template/blob/main/data/customer_churn.csv\nURL tersebut menampilkan halaman website GitHub, bukan isi file CSV secara langsung.\nKarena itu, URL halaman biasa tidak digunakan secara langsung untuk membaca dataset menggunakan read.csv().\n\n\n\nURL Raw GitHub digunakan untuk mengakses isi file secara langsung tanpa tampilan halaman GitHub.\nURL yang digunakan dalam latihan ini:\nhttps://raw.githubusercontent.com/Muhammadrizkybagas/bookdown-template/refs/heads/main/data/customer_churn.csv\nURL tersebut berisi data mentah dalam format CSV yang dapat dibaca oleh R.\nTips:\nCara mudah mengenali URL Raw adalah dengan memperhatikan alamatnya:\n\ngithub.com = URL halaman GitHub.\nraw.githubusercontent.com = URL data mentah (Raw).",
+    "crumbs": [
+      "**INTRODUCTION**"
+    ]
+  },
+  {
+    "objectID": "intro.html#membaca-dataset-dari-github",
+    "href": "intro.html#membaca-dataset-dari-github",
+    "title": "Enter Your Main Content",
+    "section": "",
+    "text": "Setelah memperoleh URL Raw, langkah selanjutnya adalah membaca dataset menggunakan R.\nUntuk membaca file CSV, kita dapat menggunakan fungsi read.csv().\nMasukkan kode berikut ke dalam code chunk R pada file Quarto (.qmd).\n\n# URL dataset Customer Churn\nurl_customer &lt;-\n  \"https://raw.githubusercontent.com/Muhammadrizkybagas/bookdown-template/refs/heads/main/data/customer_churn.csv\"\n\n# Membaca dataset\ncustomer_churn &lt;- read.csv(\n  url_customer,\n  stringsAsFactors = FALSE\n)\n\nPenjelasan kode:\n\nurl_customer: Variabel yang digunakan untuk menyimpan alamat Raw URL dataset.\nread.csv(): Fungsi untuk membaca file CSV, baik dari penyimpanan lokal maupun URL.\nstringsAsFactors = FALSE: Memastikan kolom teks dibaca sebagai karakter, bukan langsung diubah menjadi factor.\ncustomer_churn: Variabel yang digunakan untuk menyimpan dataset dalam bentuk data frame.",
+    "crumbs": [
+      "**INTRODUCTION**"
+    ]
+  },
+  {
+    "objectID": "intro.html#memeriksa-dataset",
+    "href": "intro.html#memeriksa-dataset",
+    "title": "Enter Your Main Content",
+    "section": "",
+    "text": "Setelah dataset berhasil dibaca, kita perlu melakukan pemeriksaan awal untuk memahami isi dan struktur data.\n\n\n\nhead(customer_churn)\n\n  customer_id signup_date             region segment contract_type\n1  CUST-00001  2024-12-02           Sulawesi    UMKM       Bulanan\n2  CUST-00002  2024-05-29           Sumatera  Retail       Bulanan\n3  CUST-00003  2024-12-05           Sulawesi  Retail       Tahunan\n4  CUST-00004  2023-07-21         Kalimantan    UMKM       Bulanan\n5  CUST-00005  2025-05-03               Jawa  Retail       Bulanan\n6  CUST-00006  2023-10-13 Bali-Nusa Tenggara    UMKM       Bulanan\n   payment_method internet_service tenure_months monthly_charges total_charges\n1 Virtual Account              DSL             9          373000       3231000\n2   Transfer Bank            Fiber            13          345000       4419000\n3    Kartu Kredit            Fiber            44          471000            NA\n4   Transfer Bank Mobile Broadband             4          555000       2296000\n5   Transfer Bank            Fiber             4          340000            NA\n6        E-Wallet            Fiber            11          597000       6351000\n  num_complaints support_calls churn\n1              3             6     1\n2              4             5     1\n3              2             3     0\n4              0             2     1\n5              1             1     0\n6              0             0     0\n\n\nFungsi head() digunakan untuk menampilkan enam baris pertama dari dataset.\n\n\n\n\nnrow(customer_churn)\n\n[1] 3000\n\n\nHasil:\n[1] 3000\nArtinya, dataset memiliki 3.000 observasi atau baris data.\n\n\n\n\nncol(customer_churn)\n\n[1] 13\n\n\nHasil:\n[1] 13\nArtinya, terdapat 13 variabel dalam dataset.\n\n\n\n\nnames(customer_churn)\n\n [1] \"customer_id\"      \"signup_date\"      \"region\"           \"segment\"         \n [5] \"contract_type\"    \"payment_method\"   \"internet_service\" \"tenure_months\"   \n [9] \"monthly_charges\"  \"total_charges\"    \"num_complaints\"   \"support_calls\"   \n[13] \"churn\"           \n\n\nHasil:\n[1] \"customer_id\"\n[2] \"signup_date\"\n[3] \"region\"\n[4] \"segment\"\n[5] \"contract_type\"\n[6] \"payment_method\"\n[7] \"internet_service\"\n[8] \"tenure_months\"\n[9] \"monthly_charges\"\n[10] \"total_charges\"\n[11] \"num_complaints\"\n[12] \"support_calls\"\n[13] \"churn\"\n\n\n\n\nstr(customer_churn)\n\n'data.frame':   3000 obs. of  13 variables:\n $ customer_id     : chr  \"CUST-00001\" \"CUST-00002\" \"CUST-00003\" \"CUST-00004\" ...\n $ signup_date     : chr  \"2024-12-02\" \"2024-05-29\" \"2024-12-05\" \"2023-07-21\" ...\n $ region          : chr  \"Sulawesi\" \"Sumatera\" \"Sulawesi\" \"Kalimantan\" ...\n $ segment         : chr  \"UMKM\" \"Retail\" \"Retail\" \"UMKM\" ...\n $ contract_type   : chr  \"Bulanan\" \"Bulanan\" \"Tahunan\" \"Bulanan\" ...\n $ payment_method  : chr  \"Virtual Account\" \"Transfer Bank\" \"Kartu Kredit\" \"Transfer Bank\" ...\n $ internet_service: chr  \"DSL\" \"Fiber\" \"Fiber\" \"Mobile Broadband\" ...\n $ tenure_months   : int  9 13 44 4 4 11 20 33 34 63 ...\n $ monthly_charges : num  373000 345000 471000 555000 340000 597000 371000 435000 308000 591000 ...\n $ total_charges   : num  3231000 4419000 NA 2296000 NA ...\n $ num_complaints  : int  3 4 2 0 1 0 1 2 1 1 ...\n $ support_calls   : int  6 5 3 2 1 0 3 6 1 1 ...\n $ churn           : int  1 1 0 1 0 0 0 0 0 0 ...\n\n\nFungsi str() digunakan untuk melihat struktur dataset, termasuk nama variabel, tipe data, dan beberapa contoh nilainya.\n\n\n\n\nsummary(customer_churn)\n\n    customer_id      signup_date         region          segment    \n Length   :3000   Length   :3000   Length   :3000   Length   :3000  \n N.unique :3000   N.unique :1017   N.unique :   5   N.unique :   3  \n N.blank  :   0   N.blank  :   0   N.blank  :   0   N.blank  :   0  \n Min.nchar:  10   Min.nchar:  10   Min.nchar:   4   Min.nchar:   4  \n Max.nchar:  10   Max.nchar:  10   Max.nchar:  18   Max.nchar:   8  \n                                                                    \n                                                                    \n   contract_type    payment_method  internet_service tenure_months  \n Length   :3000   Length   :3000   Length   :3000    Min.   : 1.00  \n N.unique :   3   N.unique :   4   N.unique :   3    1st Qu.:13.00  \n N.blank  :   0   N.blank  :   0   N.blank  :   0    Median :25.00  \n Min.nchar:   7   Min.nchar:   8   Min.nchar:   3    Mean   :26.52  \n Max.nchar:   9   Max.nchar:  15   Max.nchar:  16    3rd Qu.:35.00  \n                                                     Max.   :71.00  \n                                                                    \n monthly_charges   total_charges      num_complaints  support_calls   \n Min.   : 160000   Min.   :  214000   Min.   :0.000   Min.   : 0.000  \n 1st Qu.: 304000   1st Qu.: 5127000   1st Qu.:0.000   1st Qu.: 1.000  \n Median : 393000   Median : 9231000   Median :1.000   Median : 2.000  \n Mean   : 423952   Mean   :11296852   Mean   :1.128   Mean   : 2.429  \n 3rd Qu.: 497250   3rd Qu.:15236500   3rd Qu.:2.000   3rd Qu.: 3.000  \n Max.   :1353000   Max.   :59536000   Max.   :7.000   Max.   :13.000  \n                   NAs    :45                                         \n     churn       \n Min.   :0.0000  \n 1st Qu.:0.0000  \n Median :0.0000  \n Mean   :0.3493  \n 3rd Qu.:1.0000  \n Max.   :1.0000  \n                 \n\n\nFungsi summary() digunakan untuk memperoleh ringkasan statistik dari setiap variabel.\nUntuk variabel numerik, hasilnya dapat mencakup nilai minimum, kuartil, median, mean, dan maksimum.",
+    "crumbs": [
+      "**INTRODUCTION**"
+    ]
+  },
+  {
+    "objectID": "intro.html#menampilkan-dataset-secara-interaktif",
+    "href": "intro.html#menampilkan-dataset-secara-interaktif",
+    "title": "Enter Your Main Content",
+    "section": "",
+    "text": "Selain menggunakan head(), kita juga dapat menampilkan seluruh dataset dalam bentuk tabel interaktif menggunakan package DT.\nPackage DT menyediakan fungsi datatable() yang memungkinkan pengguna mencari, mengurutkan, dan memfilter data secara langsung.\nJika package DT belum terpasang, jalankan satu kali di Console:\ninstall.packages(\"DT\")\nKemudian panggil library:\n\nlibrary(DT)\n\nWarning: package 'DT' was built under R version 4.6.2\n\n\nSetelah itu, tampilkan dataset:\n\ndatatable(\n  customer_churn,\n  filter = \"top\",\n  rownames = FALSE,\n  options = list(\n    pageLength = 10,\n    scrollX = TRUE\n  )\n)\n\n\n\n\n\nHasilnya berupa tabel interaktif yang memiliki beberapa fitur:\n\nSearch: Mencari data berdasarkan kata kunci.\nFilter: Menyaring data berdasarkan kolom tertentu.\nSorting: Mengurutkan data berdasarkan nilai kolom.\nPagination: Berpindah halaman untuk melihat data lainnya.\nScrollX: Menggeser tabel secara horizontal apabila kolom terlalu banyak.",
+    "crumbs": [
+      "**INTRODUCTION**"
+    ]
+  },
+  {
+    "objectID": "intro.html#kesalahan-yang-sering-terjadi",
+    "href": "intro.html#kesalahan-yang-sering-terjadi",
+    "title": "Enter Your Main Content",
+    "section": "",
+    "text": "Masalah\nKemungkinan Penyebab\n\n\n\n\nError saat read.csv()\nMenggunakan URL halaman GitHub, bukan URL Raw.\n\n\nDataset tidak ditemukan\nURL salah atau file sudah dipindahkan.\n\n\nError saat memanggil datatable()\nPackage DT belum terpasang atau belum dipanggil menggunakan library(DT).\n\n\nData tidak tampil dengan benar\nFormat file atau proses pembacaan data tidak sesuai.\n\n\nTidak dapat mengakses URL\nKoneksi internet bermasalah atau repository tidak dapat diakses.",
+    "crumbs": [
+      "**INTRODUCTION**"
+    ]
+  },
+  {
+    "objectID": "intro.html#ringkasan",
+    "href": "intro.html#ringkasan",
+    "title": "Enter Your Main Content",
+    "section": "",
+    "text": "Berdasarkan materi ini, beberapa hal yang perlu dipahami adalah:\n\nDataset merupakan kumpulan data yang terdiri dari baris dan kolom.\nDataset Customer Churn berisi 3.000 observasi dan 13 variabel.\nDataset disimpan dalam repository GitHub agar dapat diakses secara langsung melalui internet.\nGunakan URL Raw GitHub untuk membaca dataset menggunakan R.\nFungsi read.csv() digunakan untuk membaca file CSV.\nGunakan head(), nrow(), ncol(), names(), str(), dan summary() untuk memahami struktur dataset.\nGunakan datatable() dari package DT untuk menampilkan data secara interaktif.\n\nSetelah memahami struktur dan karakteristik dataset, tahap berikutnya adalah melakukan Data Cleaning dan Exploratory Data Analysis (EDA) untuk menemukan pola, hubungan antarvariabel, serta faktor-faktor yang berkaitan dengan customer churn.",
+    "crumbs": [
+      "**INTRODUCTION**"
+    ]
+  }
+]
